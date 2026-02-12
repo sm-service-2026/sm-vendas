@@ -1,5 +1,7 @@
-/* app/globals.css - Tailwind CSS v4 */
-@import "tailwindcss";
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
@@ -56,20 +58,13 @@
   .next-error-h1,
   main,
   div#root,
-  .__next,
-  .nextjs-container,
-  .nextjs-container-fluid {
+  .__next {
     background-color: #2d2d2d !important;
   }
 
   /* Forçar todas as divs filhas do body a terem fundo transparente */
   body > div {
     background-color: transparent !important;
-  }
-
-  /* Remover qualquer fundo branco residual */
-  * {
-    background-color: transparent;
   }
 }
 
@@ -151,5 +146,20 @@
   
   .btn-primary:hover {
     background-color: var(--color-primary-dark);
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .btn-secondary:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
   }
 }
