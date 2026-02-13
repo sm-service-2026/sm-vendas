@@ -53,7 +53,7 @@ export default function VendasTecnologiaPage() {
     warning: '#f39c12',
     danger: '#e74c3c',
     info: '#3498db',
-    purple: '#9b59b6',     // corrigido: valor correto para purple
+    purple: '#e74c3c',     // corrigido: valor correto para purple
     indigo: '#5dade2'      // corrigido: vírgula adicionada antes
   }
 
@@ -688,7 +688,7 @@ export default function VendasTecnologiaPage() {
                 onClick={handleNovoVendedor}
                 className="px-4 py-2 text-sm rounded-lg transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
                 style={{ backgroundColor: theme.purple, color: 'white' }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#cf1c08'}
                 onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
               >
                 <span className="text-lg">+</span>
@@ -745,7 +745,7 @@ export default function VendasTecnologiaPage() {
                       onClick={handleNovoVendedor}
                       className="px-6 py-3 rounded-lg transition-all inline-flex items-center gap-2 shadow-lg"
                       style={{ backgroundColor: theme.purple, color: 'white' }}
-                      onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
+                      onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#cf1c08'}
                       onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
                     >
                       <span className="text-lg">+</span>

@@ -12,6 +12,21 @@ export default function LoginPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  // Cores do tema
+  const theme = {
+    background: '#2d2d2d',
+    card: '#3c3c3c',
+    primary: '#e74c3c',
+    primaryDark: '#c0392b',
+    text: '#ffffff',
+    textSecondary: '#cccccc',
+    textMuted: '#999999',
+    border: '#4a4a4a',
+    success: '#27ae60',
+    warning: '#f39c12',
+    danger: '#e74c3c'
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -31,21 +46,30 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-        <div>
-          <h2 className="text-3xl font-bold text-center text-gray-900">
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.background }}>
+      {/* Card de Login */}
+      <div className="max-w-md w-full space-y-8 p-8 rounded-xl shadow-lg" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}>
+        {/* Logo e Título */}
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-lg flex items-center justify-center shadow-md" style={{ backgroundColor: theme.primary }}>
+              <span className="text-white text-2xl font-bold">SM</span>
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold" style={{ color: theme.text }}>
             SM Service
           </h2>
-          <p className="mt-2 text-center text-gray-600">
+          <p className="mt-2" style={{ color: theme.textSecondary }}>
             Dashboard de Vendas e Logística
           </p>
         </div>
 
+        {/* Formulário */}
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="text-sm font-medium" style={{ color: theme.textSecondary }}>
                 Email
               </label>
               <input
@@ -54,13 +78,19 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                style={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderColor: theme.border,
+                  color: theme.text
+                }}
                 placeholder="seu@email.com"
               />
             </div>
 
+            {/* Senha */}
             <div>
-              <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="text-sm font-medium" style={{ color: theme.textSecondary }}>
                 Senha
               </label>
               <input
@@ -69,42 +99,34 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                style={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderColor: theme.border,
+                  color: theme.text
+                }}
                 placeholder="••••••••"
               />
             </div>
           </div>
 
+          {/* Botão de Login */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 disabled:opacity-50"
+            className="w-full py-3 px-4 font-medium rounded-lg transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
+            style={{ backgroundColor: theme.primary, color: 'white' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.primaryDark}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.primary}
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
-        {/* Link para criar conta (apenas para desenvolvimento) */}
-        <p className="text-center text-sm text-gray-600">
-          Primeiro acesso?{' '}
-          <button
-            onClick={async () => {
-              const email = prompt('Digite seu email')
-              const password = prompt('Digite sua senha (mínimo 6 caracteres)')
-              if (email && password) {
-                const { error } = await supabase.auth.signUp({
-                  email,
-                  password,
-                })
-                if (error) toast.error(error.message)
-                else toast.success('Conta criada! Verifique seu email.')
-              }
-            }}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Criar conta
-          </button>
-        </p>
+        {/* Linha decorativa inferior */}
+        <div className="pt-4 mt-4 border-t text-center text-xs" style={{ borderColor: theme.border, color: theme.textMuted }}>
+          SM Service © 2026 • Uso interno
+        </div>
       </div>
     </div>
   )
