@@ -476,7 +476,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Gráfico de Composição de Vendas */}
+        {/* Gráfico de Composição de Vendas - CORRIGIDO */}
         <div className="card p-6">
           <div className="flex justify-between items-center mb-6">
             <div>
@@ -501,13 +501,20 @@ export default function DashboardPage() {
                   outerRadius={120}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                  label={({ name, percent }) => {
+                    // CORREÇÃO: verifica se percent existe
+                    const percentual = percent !== undefined ? percent : 0;
+                    return `${name} ${(percentual * 100).toFixed(1)}%`;
+                  }}
                   labelLine={{ stroke: theme.textSecondary }}
                 >
                   <Cell fill={CORES.green} />
                   <Cell fill={CORES.purple} />
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip 
+                  formatter={(value: any) => formatMoeda(value)}
+                  contentStyle={{ backgroundColor: theme.card, border: `1px solid ${theme.border}`, color: theme.text }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>

@@ -838,9 +838,9 @@ export default function AnalyticsPage() {
                       paddingAngle={5}
                       dataKey="realizado"
                       label={(entry) => {
-                        // CORREÇÃO: Acessando a categoria corretamente
                         const categoria = entry.payload?.categoria || entry.name || 'Categoria';
-                        return `${categoria.split(' ')[0]} ${(entry.percent * 100).toFixed(0)}%`;
+                        const percentual = entry.percent !== undefined ? entry.percent : 0;
+                        return `${categoria.split(' ')[0]} ${(percentual * 100).toFixed(0)}%`;
                       }}
                       labelLine={{ stroke: theme.textSecondary }}
                     >
@@ -1040,8 +1040,9 @@ export default function AnalyticsPage() {
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ 
                       backgroundColor: item.tipo === 'servico' ? 'rgba(52, 152, 219, 0.2)' : 'rgba(155, 89, 182, 0.2)',
-                      color: item.tipo === 'servico' ? theme.blue : theme.purple,
-                      border: `1px solid ${item.tipo === 'servico' ? theme.blue : theme.purple}30`
+                      // CORRIGIDO: usando CORES.blue e CORES.purple em vez de theme.blue e theme.purple
+                      color: item.tipo === 'servico' ? CORES.blue : CORES.purple,
+                      border: `1px solid ${item.tipo === 'servico' ? CORES.blue : CORES.purple}30`
                     }}>
                       {item.tipo === 'servico' ? '🔧 Serviço' : '💻 Tecnologia'}
                     </span>

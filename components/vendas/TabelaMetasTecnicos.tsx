@@ -21,15 +21,15 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
 
   // Agrupar metas por técnico
   const tecnicosMetas = metas.reduce((acc, meta) => {
-    if (!acc[meta.tecnico_nome]) {
-      acc[meta.tecnico_nome] = {
+    if (!acc[meta.tecnico_nome || '']) {
+      acc[meta.tecnico_nome || ''] = {
         id: meta.tecnico_id,
-        nome: meta.tecnico_nome,
-        base_meta: meta.base_meta,
+        nome: meta.tecnico_nome || 'Técnico',
+        // CORREÇÃO: Não temos base_meta no MetaTecnico, então removemos
         metas: []
       }
     }
-    acc[meta.tecnico_nome].metas[meta.mes - 1] = meta
+    acc[meta.tecnico_nome || ''].metas[meta.mes - 1] = meta
     return acc
   }, {} as Record<string, any>)
 
@@ -65,46 +65,56 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
     setEditandoRealizado(null)
   }
 
+  const formatMoeda = (value: number) => {
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
+
   if (loading) {
-    return <div className="text-center py-8">Carregando metas...</div>
+    return <div className="text-center py-8 text-gray-400">Carregando metas...</div>
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-800">
+        <thead className="bg-gray-900/50">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky left-0 bg-gray-900/50">
               TÉCNICO
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
               BASE
             </th>
             {meses.map((mes, idx) => (
-              <th key={idx} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th key={idx} className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
                 {mes}
-                {idx + 1 === 7 && <span className="ml-1 text-yellow-600">⛱️</span>}
-                {idx + 1 === 6 && <span className="ml-1 text-yellow-600">⛱️</span>}
+                {idx + 1 === 7 && <span className="ml-1 text-yellow-500">⛱️</span>}
+                {idx + 1 === 6 && <span className="ml-1 text-yellow-500">⛱️</span>}
               </th>
             ))}
-            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">
               TOTAL
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-gray-900/20 divide-y divide-gray-800">
           {Object.values(tecnicosMetas).map((tecnico: any) => {
             const totalMeta = tecnico.metas.reduce((sum: number, m: any) => sum + (m?.valor_meta || 0), 0)
             const totalRealizado = tecnico.metas.reduce((sum: number, m: any) => sum + (m?.valor_realizado || 0), 0)
             const percentual = totalMeta > 0 ? (totalRealizado / totalMeta) * 100 : 0
 
             return (
-              <tr key={tecnico.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white hover:bg-gray-50">
+              <tr key={tecnico.id} className="hover:bg-white/5">
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-white sticky left-0 bg-gray-900 hover:bg-white/5">
                   {tecnico.nome}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                  R$ {tecnico.base_meta?.toLocaleString('pt-BR')}
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-400">
+                  {/* CORREÇÃO: Como não temos base_meta, mostramos um placeholder */}
+                  R$ 0
                 </td>
                 {meses.map((_, idx) => {
                   const mes = idx + 1
@@ -113,9 +123,9 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
                                   (tecnico.nome === 'MARCOS MARTINS' && mes === 6)
 
                   return (
-                    <td key={idx} className="px-4 py-3 text-sm border-l border-gray-100">
+                    <td key={idx} className="px-4 py-3 text-sm border-l border-gray-800">
                       {temFerias ? (
-                        <div className="text-center text-yellow-600 font-medium">
+                        <div className="text-center text-yellow-500 font-medium">
                           FÉRIAS
                         </div>
                       ) : (
@@ -129,30 +139,30 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
                                   type="text"
                                   value={valorEdit}
                                   onChange={(e) => setValorEdit(e.target.value)}
-                                  className="w-20 px-1 py-0.5 text-xs border rounded"
+                                  className="w-20 px-1 py-0.5 text-xs bg-gray-800 border border-gray-700 rounded text-white"
                                   placeholder="0,00"
                                 />
                                 <button
                                   onClick={salvarMeta}
-                                  className="text-green-600 hover:text-green-800"
+                                  className="text-green-500 hover:text-green-400"
                                 >
                                   ✓
                                 </button>
                                 <button
                                   onClick={() => setEditandoMeta(null)}
-                                  className="text-red-600 hover:text-red-800"
+                                  className="text-red-500 hover:text-red-400"
                                 >
                                   ✗
                                 </button>
                               </div>
                             ) : (
                               <div className="flex items-center gap-1">
-                                <span className="text-sm font-medium">
-                                  R$ {meta?.valor_meta?.toLocaleString('pt-BR') || '0'}
+                                <span className="text-sm font-medium text-white">
+                                  {meta ? formatMoeda(meta.valor_meta) : 'R$ 0,00'}
                                 </span>
                                 <button
                                   onClick={() => handleEditMeta(tecnico.id, mes, meta?.valor_meta || 0)}
-                                  className="text-gray-400 hover:text-gray-600"
+                                  className="text-gray-500 hover:text-gray-400"
                                 >
                                   ✏️
                                 </button>
@@ -161,7 +171,7 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
                           </div>
 
                           {/* Realizado */}
-                          <div className="flex items-center justify-between gap-1 border-t border-gray-50 pt-1">
+                          <div className="flex items-center justify-between gap-1 border-t border-gray-800 pt-1">
                             <span className="text-xs text-gray-500">Real:</span>
                             {editandoRealizado?.tecnico_id === tecnico.id && editandoRealizado?.mes === mes ? (
                               <div className="flex items-center gap-1">
@@ -169,18 +179,18 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
                                   type="text"
                                   value={valorEdit}
                                   onChange={(e) => setValorEdit(e.target.value)}
-                                  className="w-20 px-1 py-0.5 text-xs border rounded"
+                                  className="w-20 px-1 py-0.5 text-xs bg-gray-800 border border-gray-700 rounded text-white"
                                   placeholder="0,00"
                                 />
                                 <button
                                   onClick={salvarRealizado}
-                                  className="text-green-600 hover:text-green-800"
+                                  className="text-green-500 hover:text-green-400"
                                 >
                                   ✓
                                 </button>
                                 <button
                                   onClick={() => setEditandoRealizado(null)}
-                                  className="text-red-600 hover:text-red-800"
+                                  className="text-red-500 hover:text-red-400"
                                 >
                                   ✗
                                 </button>
@@ -188,13 +198,13 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
                             ) : (
                               <div className="flex items-center gap-1">
                                 <span className={`text-sm font-medium ${
-                                  meta?.valor_realizado > 0 ? 'text-green-600' : 'text-gray-500'
+                                  meta?.valor_realizado > 0 ? 'text-green-500' : 'text-gray-500'
                                 }`}>
-                                  R$ {meta?.valor_realizado?.toLocaleString('pt-BR') || '0'}
+                                  {meta ? formatMoeda(meta.valor_realizado) : 'R$ 0,00'}
                                 </span>
                                 <button
                                   onClick={() => handleEditRealizado(tecnico.id, mes, meta?.valor_realizado || 0)}
-                                  className="text-gray-400 hover:text-gray-600"
+                                  className="text-gray-500 hover:text-gray-400"
                                 >
                                   ✏️
                                 </button>
@@ -206,15 +216,15 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
                     </td>
                   )
                 })}
-                <td className="px-4 py-3 whitespace-nowrap text-sm border-l border-gray-200">
+                <td className="px-4 py-3 whitespace-nowrap text-sm border-l border-gray-800">
                   <div className="space-y-1">
                     <div className="text-xs text-gray-500">
-                      Meta: <span className="font-medium text-gray-900">R$ {totalMeta.toLocaleString('pt-BR')}</span>
+                      Meta: <span className="font-medium text-white">R$ {totalMeta.toLocaleString('pt-BR')}</span>
                     </div>
                     <div className="text-xs text-gray-500">
-                      Real: <span className="font-medium text-green-600">R$ {totalRealizado.toLocaleString('pt-BR')}</span>
+                      Real: <span className="font-medium text-green-500">R$ {totalRealizado.toLocaleString('pt-BR')}</span>
                     </div>
-                    <div className="text-xs font-medium">
+                    <div className="text-xs font-medium text-white">
                       {percentual.toFixed(1)}%
                     </div>
                   </div>
@@ -224,19 +234,19 @@ export default function TabelaMetasTecnicos({ ano }: TabelaMetasTecnicosProps) {
           })}
 
           {/* Linha da Fábrica */}
-          <tr className="bg-gray-50 font-medium">
-            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-gray-50">
+          <tr className="bg-gray-900/40 font-medium">
+            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-white sticky left-0 bg-gray-900/40">
               FÁBRICA
             </td>
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-400">
               R$ 28.525
             </td>
             {meses.map((_, idx) => (
-              <td key={idx} className="px-4 py-3 text-sm text-center border-l border-gray-200">
+              <td key={idx} className="px-4 py-3 text-sm text-center border-l border-gray-800">
                 R$ 28.525
               </td>
             ))}
-            <td className="px-4 py-3 whitespace-nowrap text-sm text-center border-l border-gray-200">
+            <td className="px-4 py-3 whitespace-nowrap text-sm text-center border-l border-gray-800">
               R$ 342.300
             </td>
           </tr>

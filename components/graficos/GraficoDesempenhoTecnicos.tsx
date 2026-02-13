@@ -120,7 +120,7 @@ export default function GraficoDesempenhoTecnicos({ ano, mes }: GraficoDesempenh
               width={100}
             />
             <Tooltip
-              formatter={(value: any, name: string) => {
+              formatter={(value: any, name?: string) => {
                 if (name === 'percentual') return [`${value.toFixed(1)}%`, 'Atingimento']
                 if (name === 'meta') return [formatMoeda(value), 'Meta']
                 if (name === 'realizado') return [formatMoeda(value), 'Realizado']

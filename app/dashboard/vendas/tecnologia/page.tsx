@@ -53,8 +53,8 @@ export default function VendasTecnologiaPage() {
     warning: '#f39c12',
     danger: '#e74c3c',
     info: '#3498db',
-    purple: '#e74c3c',
-    indigo: '#5dade2'
+    purple: '#9b59b6',     // corrigido: valor correto para purple
+    indigo: '#5dade2'      // corrigido: vírgula adicionada antes
   }
 
   // Estados principais
@@ -63,22 +63,22 @@ export default function VendasTecnologiaPage() {
   const [vendedores, setVendedores] = useState<VendedorTecnologia[]>([])
   const [metasVendedores, setMetasVendedores] = useState<MetaVendedor[]>([])
   const [metasCategorias, setMetasCategorias] = useState<MetaCategoria[]>([])
-  
+
   // Estados para modais - Vendedores
   const [showModalVendedor, setShowModalVendedor] = useState(false)
   const [showModalMetaVendedor, setShowModalMetaVendedor] = useState(false)
   const [vendedorEditando, setVendedorEditando] = useState<VendedorTecnologia | null>(null)
   const [metaVendedorEditando, setMetaVendedorEditando] = useState<MetaVendedor | null>(null)
-  
+
   // Estados para modais - Categorias
   const [showModalMetaCategoria, setShowModalMetaCategoria] = useState(false)
   const [metaCategoriaEditando, setMetaCategoriaEditando] = useState<MetaCategoria | null>(null)
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string>('')
-  
+
   // Estados para modais - Exclusão
   const [showModalExcluir, setShowModalExcluir] = useState(false)
   const [itemParaExcluir, setItemParaExcluir] = useState<{ id: string, nome: string, tipo: 'vendedor' | 'metaVendedor' | 'metaCategoria' } | null>(null)
-  
+
   // Estados para formulários
   const [formVendedor, setFormVendedor] = useState({
     nome: '',
@@ -103,30 +103,30 @@ export default function VendasTecnologiaPage() {
 
   // Categorias fixas do Excel
   const categorias = [
-    { 
-      nome: 'SINAIS PTx Trimble', 
-      comissao: 460, 
+    {
+      nome: 'SINAIS PTx Trimble',
+      comissao: 460,
       tipo: 'fixo',
       descricao: 'Comissão fixa por venda',
       cor: '#3498db'
     },
-    { 
-      nome: 'Licenças PTx Trimble', 
-      comissao: 10, 
+    {
+      nome: 'Licenças PTx Trimble',
+      comissao: 10,
       tipo: 'percentual',
       descricao: '10% do valor vendido',
       cor: '#27ae60'
     },
-    { 
-      nome: 'Treinamentos Clientes', 
-      comissao: 83, 
+    {
+      nome: 'Treinamentos Clientes',
+      comissao: 83,
       tipo: 'percentual',
       descricao: '83% do valor vendido',
       cor: '#f39c12'
     },
-    { 
-      nome: 'Hardwares PTx Trimble', 
-      comissao: 10, 
+    {
+      nome: 'Hardwares PTx Trimble',
+      comissao: 10,
       tipo: 'percentual',
       descricao: '10% do valor vendido',
       cor: '#e74c3c'
@@ -167,7 +167,6 @@ export default function VendasTecnologiaPage() {
         .from('vendedores_tecnologia')
         .select('*')
         .order('nome')
-
       if (vendedoresError) {
         if (vendedoresError.message.includes('does not exist')) {
           await criarTabelas()
@@ -183,19 +182,16 @@ export default function VendasTecnologiaPage() {
         .select('*, vendedores_tecnologia(nome)')
         .eq('ano', ano)
         .order('mes')
-
       if (metasVendedoresError && !metasVendedoresError.message.includes('does not exist')) {
         throw metasVendedoresError
       }
-
       const metasVendedoresProcessadas = (metasVendedoresData || []).map((meta: any) => ({
         ...meta,
         vendedor_nome: meta.vendedores_tecnologia?.nome,
-        percentual: meta.valor_meta > 0 
-          ? (meta.valor_realizado / meta.valor_meta) * 100 
+        percentual: meta.valor_meta > 0
+          ? (meta.valor_realizado / meta.valor_meta) * 100
           : 0
       }))
-
       setMetasVendedores(metasVendedoresProcessadas)
 
       // 3. Carregar metas das categorias do ano selecionado
@@ -204,20 +200,16 @@ export default function VendasTecnologiaPage() {
         .select('*')
         .eq('ano', ano)
         .order('mes')
-
       if (metasCategoriasError && !metasCategoriasError.message.includes('does not exist')) {
         throw metasCategoriasError
       }
-
       const metasCategoriasProcessadas = (metasCategoriasData || []).map((meta: any) => ({
         ...meta,
-        percentual: meta.valor_meta > 0 
-          ? (meta.valor_realizado / meta.valor_meta) * 100 
+        percentual: meta.valor_meta > 0
+          ? (meta.valor_realizado / meta.valor_meta) * 100
           : 0
       }))
-
       setMetasCategorias(metasCategoriasProcessadas)
-
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
       toast.error('Erro ao carregar dados')
@@ -266,12 +258,10 @@ export default function VendasTecnologiaPage() {
       toast.error('Nome do vendedor é obrigatório')
       return
     }
-
     if (formVendedor.comissao_padrao < 0) {
       toast.error('Comissão não pode ser negativa')
       return
     }
-
     try {
       if (vendedorEditando) {
         const { error } = await supabase
@@ -281,7 +271,6 @@ export default function VendasTecnologiaPage() {
             comissao_padrao: formVendedor.comissao_padrao
           })
           .eq('id', vendedorEditando.id)
-
         if (error) throw error
         toast.success('Vendedor atualizado com sucesso!')
       } else {
@@ -292,11 +281,9 @@ export default function VendasTecnologiaPage() {
             comissao_padrao: formVendedor.comissao_padrao,
             ativo: true
           }])
-
         if (error) throw error
         toast.success('Vendedor cadastrado com sucesso!')
       }
-
       setShowModalVendedor(false)
       carregarDados()
     } catch (error) {
@@ -311,7 +298,6 @@ export default function VendasTecnologiaPage() {
         .from('vendedores_tecnologia')
         .update({ ativo: !vendedor.ativo })
         .eq('id', vendedor.id)
-
       if (error) throw error
       toast.success(`Vendedor ${vendedor.ativo ? 'desativado' : 'ativado'} com sucesso!`)
       carregarDados()
@@ -324,7 +310,7 @@ export default function VendasTecnologiaPage() {
   // ========== CRUD METAS DOS VENDEDORES ==========
   function handleNovaMetaVendedor(vendedorId?: string, mes?: number) {
     const vendedor = vendedores.find(v => v.id === vendedorId)
-    
+   
     setMetaVendedorEditando(null)
     setFormMetaVendedor({
       vendedor_id: vendedorId || vendedores[0]?.id || '',
@@ -351,12 +337,10 @@ export default function VendasTecnologiaPage() {
       toast.error('Selecione um vendedor')
       return
     }
-
     if (formMetaVendedor.valor_meta < 0 || formMetaVendedor.valor_realizado < 0) {
       toast.error('Valores não podem ser negativos')
       return
     }
-
     try {
       if (metaVendedorEditando) {
         const { error } = await supabase
@@ -366,7 +350,6 @@ export default function VendasTecnologiaPage() {
             valor_realizado: formMetaVendedor.valor_realizado
           })
           .eq('id', metaVendedorEditando.id)
-
         if (error) throw error
         toast.success('Meta atualizada com sucesso!')
       } else {
@@ -377,12 +360,10 @@ export default function VendasTecnologiaPage() {
           .eq('ano', ano)
           .eq('mes', formMetaVendedor.mes)
           .maybeSingle()
-
         if (existente) {
           toast.error('Já existe uma meta para este vendedor e mês')
           return
         }
-
         const { error } = await supabase
           .from('metas_vendedores_tecnologia')
           .insert([{
@@ -392,11 +373,9 @@ export default function VendasTecnologiaPage() {
             valor_meta: formMetaVendedor.valor_meta,
             valor_realizado: formMetaVendedor.valor_realizado
           }])
-
         if (error) throw error
         toast.success('Meta cadastrada com sucesso!')
       }
-
       setShowModalMetaVendedor(false)
       carregarDados()
     } catch (error) {
@@ -435,12 +414,10 @@ export default function VendasTecnologiaPage() {
       toast.error('Selecione uma categoria')
       return
     }
-
     if (formMetaCategoria.valor_meta < 0 || formMetaCategoria.valor_realizado < 0) {
       toast.error('Valores não podem ser negativos')
       return
     }
-
     try {
       if (metaCategoriaEditando) {
         const { error } = await supabase
@@ -450,7 +427,6 @@ export default function VendasTecnologiaPage() {
             valor_realizado: formMetaCategoria.valor_realizado
           })
           .eq('id', metaCategoriaEditando.id)
-
         if (error) throw error
         toast.success('Meta atualizada com sucesso!')
       } else {
@@ -461,12 +437,10 @@ export default function VendasTecnologiaPage() {
           .eq('ano', ano)
           .eq('mes', formMetaCategoria.mes)
           .maybeSingle()
-
         if (existente) {
           toast.error('Já existe uma meta para esta categoria e mês')
           return
         }
-
         const { error } = await supabase
           .from('metas_categorias_tecnologia')
           .insert([{
@@ -476,11 +450,9 @@ export default function VendasTecnologiaPage() {
             valor_meta: formMetaCategoria.valor_meta,
             valor_realizado: formMetaCategoria.valor_realizado
           }])
-
         if (error) throw error
         toast.success('Meta cadastrada com sucesso!')
       }
-
       setShowModalMetaCategoria(false)
       carregarDados()
     } catch (error) {
@@ -497,7 +469,6 @@ export default function VendasTecnologiaPage() {
 
   async function handleConfirmarExclusao() {
     if (!itemParaExcluir) return
-
     try {
       if (itemParaExcluir.tipo === 'vendedor') {
         const { data: metas } = await supabase
@@ -505,20 +476,19 @@ export default function VendasTecnologiaPage() {
           .select('id')
           .eq('vendedor_id', itemParaExcluir.id)
           .limit(1)
-
         if (metas && metas.length > 0) {
           await supabase
             .from('vendedores_tecnologia')
             .update({ ativo: false })
             .eq('id', itemParaExcluir.id)
-          
+         
           toast.success('Vendedor desativado (possui metas associadas)')
         } else {
           await supabase
             .from('vendedores_tecnologia')
             .delete()
             .eq('id', itemParaExcluir.id)
-          
+         
           toast.success('Vendedor excluído com sucesso!')
         }
       } else if (itemParaExcluir.tipo === 'metaVendedor') {
@@ -526,17 +496,16 @@ export default function VendasTecnologiaPage() {
           .from('metas_vendedores_tecnologia')
           .delete()
           .eq('id', itemParaExcluir.id)
-        
+       
         toast.success('Meta excluída com sucesso!')
       } else if (itemParaExcluir.tipo === 'metaCategoria') {
         await supabase
           .from('metas_categorias_tecnologia')
           .delete()
           .eq('id', itemParaExcluir.id)
-        
+       
         toast.success('Meta excluída com sucesso!')
       }
-
       setShowModalExcluir(false)
       carregarDados()
     } catch (error) {
@@ -559,7 +528,7 @@ export default function VendasTecnologiaPage() {
     const totalMeta = metasVendedor.reduce((acc, m) => acc + m.valor_meta, 0)
     const totalRealizado = metasVendedor.reduce((acc, m) => acc + m.valor_realizado, 0)
     const percentual = totalMeta > 0 ? (totalRealizado / totalMeta) * 100 : 0
-    
+   
     return { totalMeta, totalRealizado, percentual }
   }
 
@@ -568,16 +537,16 @@ export default function VendasTecnologiaPage() {
     const totalMeta = metasCategoria.reduce((acc, m) => acc + m.valor_meta, 0)
     const totalRealizado = metasCategoria.reduce((acc, m) => acc + m.valor_realizado, 0)
     const percentual = totalMeta > 0 ? (totalRealizado / totalMeta) * 100 : 0
-    
+   
     return { totalMeta, totalRealizado, percentual }
   }
 
   function calcularComissao(valor: number, categoriaNome: string) {
     if (valor <= 0) return 0
-    
+   
     const categoria = categorias.find(c => c.nome === categoriaNome)
     if (!categoria) return 0
-    
+   
     if (categoria.tipo === 'percentual') {
       return valor * (categoria.comissao / 100)
     } else {
@@ -610,7 +579,7 @@ export default function VendasTecnologiaPage() {
   const formatComissao = (categoriaNome: string) => {
     const categoria = categorias.find(c => c.nome === categoriaNome)
     if (!categoria) return ''
-    
+   
     if (categoria.tipo === 'percentual') {
       return `${categoria.comissao}%`
     } else {
@@ -643,12 +612,12 @@ export default function VendasTecnologiaPage() {
     return acc + totais.totalRealizado
   }, 0)
 
-  const percentualGeralVendedores = totalMetaVendedores > 0 
-    ? (totalRealizadoVendedores / totalMetaVendedores) * 100 
+  const percentualGeralVendedores = totalMetaVendedores > 0
+    ? (totalRealizadoVendedores / totalMetaVendedores) * 100
     : 0
 
-  const percentualGeralCategorias = totalMetaCategorias > 0 
-    ? (totalRealizadoCategorias / totalMetaCategorias) * 100 
+  const percentualGeralCategorias = totalMetaCategorias > 0
+    ? (totalRealizadoCategorias / totalMetaCategorias) * 100
     : 0
 
   // Total de comissões
@@ -677,8 +646,14 @@ export default function VendasTecnologiaPage() {
                 onClick={() => router.back()}
                 className="p-2 rounded-lg transition-colors"
                 style={{ color: theme.textSecondary }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
+                  e.currentTarget.style.color = theme.text; 
+                }}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                  e.currentTarget.style.backgroundColor = 'transparent'; 
+                  e.currentTarget.style.color = theme.textSecondary; 
+                }}
               >
                 <span className="text-xl">←</span>
               </button>
@@ -694,13 +669,12 @@ export default function VendasTecnologiaPage() {
                 </p>
               </div>
             </div>
-
             <div className="flex items-center gap-3">
               <select
                 value={ano}
                 onChange={(e) => setAno(Number(e.target.value))}
                 className="px-4 py-2 text-sm rounded-lg border focus:ring-2 outline-none"
-                style={{ 
+                style={{
                   backgroundColor: 'rgba(0, 0, 0, 0.2)',
                   borderColor: theme.border,
                   color: theme.text
@@ -710,13 +684,12 @@ export default function VendasTecnologiaPage() {
                   <option key={a} value={a}>{a}</option>
                 ))}
               </select>
-
               <button
                 onClick={handleNovoVendedor}
                 className="px-4 py-2 text-sm rounded-lg transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
                 style={{ backgroundColor: theme.purple, color: 'white' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8e44ad'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.purple}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
+                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
               >
                 <span className="text-lg">+</span>
                 Novo Vendedor
@@ -741,8 +714,8 @@ export default function VendasTecnologiaPage() {
                     <div>
                       <h2 className="text-lg font-semibold text-white">Metas dos Vendedores</h2>
                       <p className="text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                        {vendedores.filter(v => v.ativo).length} vendedores ativos • 
-                        Total: {formatMoeda(totalRealizadoVendedores)} / {formatMoeda(totalMetaVendedores)} 
+                        {vendedores.filter(v => v.ativo).length} vendedores ativos •
+                        Total: {formatMoeda(totalRealizadoVendedores)} / {formatMoeda(totalMetaVendedores)}
                         ({percentualGeralVendedores.toFixed(1)}%)
                       </p>
                     </div>
@@ -762,7 +735,6 @@ export default function VendasTecnologiaPage() {
                   </div>
                 </div>
               </div>
-
               <div className="p-6 space-y-6">
                 {vendedores.filter(v => v.ativo).length === 0 ? (
                   <div className="text-center py-12">
@@ -773,8 +745,8 @@ export default function VendasTecnologiaPage() {
                       onClick={handleNovoVendedor}
                       className="px-6 py-3 rounded-lg transition-all inline-flex items-center gap-2 shadow-lg"
                       style={{ backgroundColor: theme.purple, color: 'white' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8e44ad'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.purple}
+                      onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
+                      onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
                     >
                       <span className="text-lg">+</span>
                       Novo Vendedor
@@ -786,7 +758,6 @@ export default function VendasTecnologiaPage() {
                     .map((vendedor) => {
                       const totais = calcularTotalVendedor(vendedor.id)
                       const statusAnual = getStatusMeta(totais.percentual)
-
                       return (
                         <div key={vendedor.id} className="rounded-xl shadow-sm overflow-hidden border" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                           {/* Cabeçalho do Vendedor */}
@@ -814,14 +785,13 @@ export default function VendasTecnologiaPage() {
                                   </div>
                                 </div>
                               </div>
-
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => handleNovaMetaVendedor(vendedor.id)}
                                   className="px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1"
                                   style={{ backgroundColor: theme.success, color: 'white' }}
-                                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#219a52'}
-                                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.success}
+                                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#219a52'}
+                                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.success}
                                 >
                                   <span>+</span>
                                   Nova Meta
@@ -830,8 +800,14 @@ export default function VendasTecnologiaPage() {
                                   onClick={() => handleEditarVendedor(vendedor)}
                                   className="p-2 rounded-lg transition-colors"
                                   style={{ color: theme.purple }}
-                                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(155, 89, 182, 0.1)'; e.currentTarget.style.color = '#8e44ad'; }}
-                                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.purple; }}
+                                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                    e.currentTarget.style.backgroundColor = 'rgba(155, 89, 182, 0.1)'; 
+                                    e.currentTarget.style.color = '#8e44ad'; 
+                                  }}
+                                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                    e.currentTarget.style.backgroundColor = 'transparent'; 
+                                    e.currentTarget.style.color = theme.purple; 
+                                  }}
                                   title="Editar vendedor"
                                 >
                                   ✏️
@@ -840,8 +816,8 @@ export default function VendasTecnologiaPage() {
                                   onClick={() => handleToggleAtivoVendedor(vendedor)}
                                   className="p-2 rounded-lg transition-colors"
                                   style={{ color: theme.danger }}
-                                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
+                                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'transparent'}
                                   title="Desativar vendedor"
                                 >
                                   🔴
@@ -850,15 +826,14 @@ export default function VendasTecnologiaPage() {
                                   onClick={() => handleExcluirClick(vendedor.id, vendedor.nome, 'vendedor')}
                                   className="p-2 rounded-lg transition-colors"
                                   style={{ color: theme.danger }}
-                                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
+                                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'transparent'}
                                   title="Excluir vendedor"
                                 >
                                   🗑️
                                 </button>
                               </div>
                             </div>
-
                             {/* Barra de progresso anual */}
                             <div className="mt-4">
                               <div className="flex justify-between items-center text-sm mb-1">
@@ -868,9 +843,9 @@ export default function VendasTecnologiaPage() {
                                 </span>
                               </div>
                               <div className="w-full rounded-full h-2.5" style={{ backgroundColor: theme.border }}>
-                                <div 
-                                  className="h-2.5 rounded-full transition-all duration-500"
-                                  style={{ 
+                                <div
+                                  className={`h-2.5 rounded-full transition-all duration-500`}
+                                  style={{
                                     width: `${Math.min(totais.percentual, 100)}%`,
                                     backgroundColor: totais.percentual >= 100 ? theme.success : totais.percentual >= 70 ? theme.warning : theme.danger
                                   }}
@@ -896,9 +871,8 @@ export default function VendasTecnologiaPage() {
                                 {meses.map((nomeMes, index) => {
                                   const mes = index + 1
                                   const meta = getMetaVendedor(vendedor.id, mes)
-                                  const percentual = meta?.valor_meta > 0 ? (meta.valor_realizado / meta.valor_meta) * 100 : 0
+                                  const percentual = meta && meta.valor_meta > 0 ? (meta.valor_realizado / meta.valor_meta) * 100 : 0
                                   const status = getStatusMeta(percentual)
-
                                   return (
                                     <tr key={mes} className="transition-colors hover:bg-opacity-10" style={{ backgroundColor: 'transparent' }}>
                                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium" style={{ color: theme.text }}>
@@ -928,15 +902,15 @@ export default function VendasTecnologiaPage() {
                                       <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                                         {meta ? (
                                           <div className="flex items-center justify-center gap-2">
-                                            <span className="font-semibold" style={{ 
-                                              color: percentual >= 100 ? theme.success : percentual >= 70 ? theme.warning : theme.danger 
+                                            <span className="font-semibold" style={{
+                                              color: percentual >= 100 ? theme.success : percentual >= 70 ? theme.warning : theme.danger
                                             }}>
                                               {percentual.toFixed(1)}%
                                             </span>
                                             <div className="w-16 rounded-full h-1.5" style={{ backgroundColor: theme.border }}>
-                                              <div 
+                                              <div
                                                 className="h-1.5 rounded-full"
-                                                style={{ 
+                                                style={{
                                                   width: `${Math.min(percentual, 100)}%`,
                                                   backgroundColor: percentual >= 100 ? theme.success : percentual >= 70 ? theme.warning : theme.danger
                                                 }}
@@ -955,8 +929,12 @@ export default function VendasTecnologiaPage() {
                                                 onClick={() => handleEditarMetaVendedor(meta)}
                                                 className="p-1.5 rounded-md transition-colors"
                                                 style={{ color: theme.purple }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(155, 89, 182, 0.1)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                                  e.currentTarget.style.backgroundColor = 'rgba(155, 89, 182, 0.1)' 
+                                                }}
+                                                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                                  e.currentTarget.style.backgroundColor = 'transparent' 
+                                                }}
                                                 title="Editar meta"
                                               >
                                                 ✏️
@@ -965,8 +943,12 @@ export default function VendasTecnologiaPage() {
                                                 onClick={() => handleExcluirClick(meta.id, `Meta ${nomeMes}`, 'metaVendedor')}
                                                 className="p-1.5 rounded-md transition-colors"
                                                 style={{ color: theme.danger }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                                  e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)' 
+                                                }}
+                                                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                                  e.currentTarget.style.backgroundColor = 'transparent' 
+                                                }}
                                                 title="Excluir meta"
                                               >
                                                 🗑️
@@ -977,8 +959,12 @@ export default function VendasTecnologiaPage() {
                                               onClick={() => handleNovaMetaVendedor(vendedor.id, mes)}
                                               className="p-1.5 rounded-md transition-colors"
                                               style={{ color: theme.success }}
-                                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(39, 174, 96, 0.1)'}
-                                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                                e.currentTarget.style.backgroundColor = 'rgba(39, 174, 96, 0.1)' 
+                                              }}
+                                              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                                e.currentTarget.style.backgroundColor = 'transparent' 
+                                              }}
                                               title="Adicionar meta"
                                             >
                                               ➕
@@ -1001,8 +987,8 @@ export default function VendasTecnologiaPage() {
                                     </span>
                                   </td>
                                   <td className="px-4 py-3 text-sm text-center">
-                                    <span className="font-semibold" style={{ 
-                                      color: totais.percentual >= 100 ? theme.success : totais.percentual >= 70 ? theme.warning : theme.danger 
+                                    <span className="font-semibold" style={{
+                                      color: totais.percentual >= 100 ? theme.success : totais.percentual >= 70 ? theme.warning : theme.danger
                                     }}>
                                       {totais.percentual.toFixed(1)}%
                                     </span>
@@ -1018,8 +1004,12 @@ export default function VendasTecnologiaPage() {
                                       }}
                                       className="p-1.5 rounded-md transition-colors"
                                       style={{ color: theme.danger }}
-                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                      onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                        e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)' 
+                                      }}
+                                      onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                                        e.currentTarget.style.backgroundColor = 'transparent' 
+                                      }}
                                       title="Excluir todas as metas"
                                     >
                                       🗑️
@@ -1052,8 +1042,8 @@ export default function VendasTecnologiaPage() {
                             onClick={() => handleToggleAtivoVendedor(vendedor)}
                             className="px-3 py-1.5 text-sm rounded-lg transition-colors"
                             style={{ backgroundColor: theme.success, color: 'white' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#219a52'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.success}
+                            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#219a52'}
+                            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.success}
                           >
                             Reativar
                           </button>
@@ -1076,8 +1066,8 @@ export default function VendasTecnologiaPage() {
                     <div>
                       <h2 className="text-lg font-semibold text-white">Metas por Categoria</h2>
                       <p className="text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>
-                        SINAIS PTx • Licenças • Treinamentos • Hardwares • 
-                        Total: {formatMoeda(totalRealizadoCategorias)} / {formatMoeda(totalMetaCategorias)} 
+                        SINAIS PTx • Licenças • Treinamentos • Hardwares •
+                        Total: {formatMoeda(totalRealizadoCategorias)} / {formatMoeda(totalMetaCategorias)}
                         ({percentualGeralCategorias.toFixed(1)}%)
                       </p>
                     </div>
@@ -1087,14 +1077,12 @@ export default function VendasTecnologiaPage() {
                   </div>
                 </div>
               </div>
-
               <div className="p-6">
                 {/* Cards de resumo das categorias */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   {categorias.map((categoria, index) => {
                     const totais = calcularTotalCategoria(categoria.nome)
                     const percentual = totais.percentual
-
                     return (
                       <div key={index} className="rounded-lg p-4 text-white shadow-md" style={{ backgroundColor: categoria.cor }}>
                         <div className="flex justify-between items-start">
@@ -1117,7 +1105,7 @@ export default function VendasTecnologiaPage() {
                           </div>
                         </div>
                         <div className="mt-3 w-full bg-white/30 rounded-full h-1.5">
-                          <div 
+                          <div
                             className="bg-white rounded-full h-1.5"
                             style={{ width: `${Math.min(percentual, 100)}%` }}
                           />
@@ -1148,28 +1136,26 @@ export default function VendasTecnologiaPage() {
                     <tbody className="divide-y" style={{ borderColor: theme.border }}>
                       {meses.map((nomeMes, index) => {
                         const mes = index + 1
-                        
+                       
                         let totalMetaMes = 0
                         let totalRealizadoMes = 0
-                        
+                       
                         categorias.forEach(categoria => {
                           const meta = getMetaCategoria(categoria.nome, mes)
                           totalMetaMes += meta?.valor_meta || 0
                           totalRealizadoMes += meta?.valor_realizado || 0
                         })
-
                         const percentualMes = totalMetaMes > 0 ? (totalRealizadoMes / totalMetaMes) * 100 : 0
-
                         return (
                           <tr key={mes} className="transition-colors hover:bg-opacity-10">
                             <td className="px-4 py-3 whitespace-nowrap text-sm font-medium" style={{ color: theme.text }}>
                               {mesesAbreviados[index]}
                             </td>
-                            
+                           
                             {categorias.map(categoria => {
                               const meta = getMetaCategoria(categoria.nome, mes)
-                              const percentual = meta?.valor_meta > 0 ? (meta.valor_realizado / meta.valor_meta) * 100 : 0
-                              
+                              const percentual = meta && meta.valor_meta > 0 ? (meta.valor_realizado / meta.valor_meta) * 100 : 0
+                             
                               return (
                                 <td key={categoria.nome} className="px-4 py-3 text-sm border-l" style={{ borderColor: theme.border }}>
                                   {meta ? (
@@ -1189,9 +1175,9 @@ export default function VendasTecnologiaPage() {
                                         </div>
                                       )}
                                       <div className="w-full rounded-full h-1 mt-1" style={{ backgroundColor: theme.border }}>
-                                        <div 
+                                        <div
                                           className="h-1 rounded-full"
-                                          style={{ 
+                                          style={{
                                             width: `${Math.min(percentual, 100)}%`,
                                             backgroundColor: percentual >= 100 ? theme.success : theme.warning
                                           }}
@@ -1202,8 +1188,8 @@ export default function VendasTecnologiaPage() {
                                           onClick={() => handleEditarMetaCategoria(meta)}
                                           className="text-xs transition-colors"
                                           style={{ color: theme.primary }}
-                                          onMouseEnter={(e) => e.currentTarget.style.color = theme.primaryDark}
-                                          onMouseLeave={(e) => e.currentTarget.style.color = theme.primary}
+                                          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.primaryDark}
+                                          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.primary}
                                         >
                                           editar
                                         </button>
@@ -1215,8 +1201,8 @@ export default function VendasTecnologiaPage() {
                                         onClick={() => handleNovaMetaCategoria(categoria.nome, mes)}
                                         className="p-1.5 rounded-md transition-colors"
                                         style={{ color: theme.success }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(39, 174, 96, 0.1)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                        onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'rgba(39, 174, 96, 0.1)'}
+                                        onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         title="Adicionar meta"
                                       >
                                         ➕
@@ -1229,7 +1215,7 @@ export default function VendasTecnologiaPage() {
                                 </td>
                               )
                             })}
-                            
+                           
                             <td className="px-4 py-3 text-sm text-center border-l" style={{ borderColor: theme.border, backgroundColor: 'rgba(0,0,0,0.2)' }}>
                               <div className="space-y-1">
                                 <div className="text-xs" style={{ color: theme.textMuted }}>
@@ -1243,7 +1229,7 @@ export default function VendasTecnologiaPage() {
                                 </div>
                               </div>
                             </td>
-                            
+                           
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-right">
                               <button
                                 onClick={() => {
@@ -1256,8 +1242,8 @@ export default function VendasTecnologiaPage() {
                                 }}
                                 className="p-1.5 rounded-md transition-colors"
                                 style={{ color: theme.danger }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
+                                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'transparent'}
                                 title="Excluir todas as metas do mês"
                               >
                                 🗑️
@@ -1276,7 +1262,7 @@ export default function VendasTecnologiaPage() {
                           const totalComissao = metasCategorias
                             .filter(m => m.categoria === categoria.nome)
                             .reduce((acc, m) => acc + calcularComissao(m.valor_realizado, categoria.nome), 0)
-                          
+                         
                           return (
                             <td key={categoria.nome} className="px-4 py-3 text-sm text-center border-l" style={{ borderColor: theme.border }}>
                               <div className="space-y-1">
@@ -1286,8 +1272,8 @@ export default function VendasTecnologiaPage() {
                                 <div className="text-xs font-semibold" style={{ color: theme.success }}>
                                   {formatMoeda(totais.totalRealizado)}
                                 </div>
-                                <div className="text-xs font-medium" style={{ 
-                                  color: percentual >= 100 ? theme.success : percentual >= 70 ? theme.warning : theme.danger 
+                                <div className="text-xs font-medium" style={{
+                                  color: percentual >= 100 ? theme.success : percentual >= 70 ? theme.warning : theme.danger
                                 }}>
                                   {percentual.toFixed(1)}%
                                 </div>
@@ -1308,8 +1294,8 @@ export default function VendasTecnologiaPage() {
                             <div className="text-xs font-bold" style={{ color: theme.success }}>
                               {formatMoeda(totalRealizadoCategorias)}
                             </div>
-                            <div className="text-xs font-bold" style={{ 
-                              color: percentualGeralCategorias >= 100 ? theme.success : percentualGeralCategorias >= 70 ? theme.warning : theme.danger 
+                            <div className="text-xs font-bold" style={{
+                              color: percentualGeralCategorias >= 100 ? theme.success : percentualGeralCategorias >= 70 ? theme.warning : theme.danger
                             }}>
                               {percentualGeralCategorias.toFixed(1)}%
                             </div>
@@ -1341,14 +1327,13 @@ export default function VendasTecnologiaPage() {
                     onClick={() => setShowModalVendedor(false)}
                     className="rounded-md text-2xl transition-colors"
                     style={{ color: theme.textMuted }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = theme.text}
-                    onMouseLeave={(e) => e.currentTarget.style.color = theme.textMuted}
+                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.text}
+                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.textMuted}
                   >
                     ×
                   </button>
                 </div>
               </div>
-
               <div className="px-6 py-4">
                 <div className="space-y-4">
                   <div>
@@ -1358,7 +1343,7 @@ export default function VendasTecnologiaPage() {
                       value={formVendedor.nome}
                       onChange={(e) => setFormVendedor({ ...formVendedor, nome: e.target.value.toUpperCase() })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1367,7 +1352,6 @@ export default function VendasTecnologiaPage() {
                       autoFocus
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Comissão Padrão (%)</label>
                     <input
@@ -1375,7 +1359,7 @@ export default function VendasTecnologiaPage() {
                       value={formVendedor.comissao_padrao}
                       onChange={(e) => setFormVendedor({ ...formVendedor, comissao_padrao: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1391,14 +1375,19 @@ export default function VendasTecnologiaPage() {
                   </div>
                 </div>
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalVendedor(false)}
                   className="px-4 py-2 rounded-lg transition-colors"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
+                    e.currentTarget.style.color = theme.text; 
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'transparent'; 
+                    e.currentTarget.style.color = theme.textSecondary; 
+                  }}
                 >
                   Cancelar
                 </button>
@@ -1406,8 +1395,8 @@ export default function VendasTecnologiaPage() {
                   onClick={handleSalvarVendedor}
                   className="px-4 py-2 rounded-lg transition-all"
                   style={{ backgroundColor: theme.purple, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8e44ad'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.purple}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
                 >
                   {vendedorEditando ? 'Salvar Alterações' : 'Cadastrar Vendedor'}
                 </button>
@@ -1432,14 +1421,13 @@ export default function VendasTecnologiaPage() {
                     onClick={() => setShowModalMetaVendedor(false)}
                     className="rounded-md text-2xl transition-colors"
                     style={{ color: theme.textMuted }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = theme.text}
-                    onMouseLeave={(e) => e.currentTarget.style.color = theme.textMuted}
+                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.text}
+                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.textMuted}
                   >
                     ×
                   </button>
                 </div>
               </div>
-
               <div className="px-6 py-4">
                 <div className="space-y-4">
                   <div>
@@ -1448,7 +1436,7 @@ export default function VendasTecnologiaPage() {
                       value={formMetaVendedor.vendedor_id}
                       onChange={(e) => setFormMetaVendedor({ ...formMetaVendedor, vendedor_id: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1463,14 +1451,13 @@ export default function VendasTecnologiaPage() {
                       ))}
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Mês *</label>
                     <select
                       value={formMetaVendedor.mes}
                       onChange={(e) => setFormMetaVendedor({ ...formMetaVendedor, mes: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1482,7 +1469,6 @@ export default function VendasTecnologiaPage() {
                       ))}
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor da Meta (R$)</label>
                     <input
@@ -1490,7 +1476,7 @@ export default function VendasTecnologiaPage() {
                       value={formMetaVendedor.valor_meta}
                       onChange={(e) => setFormMetaVendedor({ ...formMetaVendedor, valor_meta: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1500,7 +1486,6 @@ export default function VendasTecnologiaPage() {
                       step="0.01"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor Realizado (R$)</label>
                     <input
@@ -1508,7 +1493,7 @@ export default function VendasTecnologiaPage() {
                       value={formMetaVendedor.valor_realizado}
                       onChange={(e) => setFormMetaVendedor({ ...formMetaVendedor, valor_realizado: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1520,14 +1505,19 @@ export default function VendasTecnologiaPage() {
                   </div>
                 </div>
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalMetaVendedor(false)}
                   className="px-4 py-2 rounded-lg transition-colors"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
+                    e.currentTarget.style.color = theme.text; 
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'transparent'; 
+                    e.currentTarget.style.color = theme.textSecondary; 
+                  }}
                 >
                   Cancelar
                 </button>
@@ -1535,8 +1525,8 @@ export default function VendasTecnologiaPage() {
                   onClick={handleSalvarMetaVendedor}
                   className="px-4 py-2 rounded-lg transition-all"
                   style={{ backgroundColor: theme.purple, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8e44ad'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.purple}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
                 >
                   {metaVendedorEditando ? 'Salvar Alterações' : 'Cadastrar Meta'}
                 </button>
@@ -1561,14 +1551,13 @@ export default function VendasTecnologiaPage() {
                     onClick={() => setShowModalMetaCategoria(false)}
                     className="rounded-md text-2xl transition-colors"
                     style={{ color: theme.textMuted }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = theme.text}
-                    onMouseLeave={(e) => e.currentTarget.style.color = theme.textMuted}
+                    onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.text}
+                    onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.color = theme.textMuted}
                   >
                     ×
                   </button>
                 </div>
               </div>
-
               <div className="px-6 py-4">
                 <div className="space-y-4">
                   <div>
@@ -1577,7 +1566,7 @@ export default function VendasTecnologiaPage() {
                       value={formMetaCategoria.categoria}
                       onChange={(e) => setFormMetaCategoria({ ...formMetaCategoria, categoria: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1591,14 +1580,13 @@ export default function VendasTecnologiaPage() {
                       ))}
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Mês *</label>
                     <select
                       value={formMetaCategoria.mes}
                       onChange={(e) => setFormMetaCategoria({ ...formMetaCategoria, mes: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1610,7 +1598,6 @@ export default function VendasTecnologiaPage() {
                       ))}
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor da Meta (R$)</label>
                     <input
@@ -1618,7 +1605,7 @@ export default function VendasTecnologiaPage() {
                       value={formMetaCategoria.valor_meta}
                       onChange={(e) => setFormMetaCategoria({ ...formMetaCategoria, valor_meta: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1628,7 +1615,6 @@ export default function VendasTecnologiaPage() {
                       step="0.01"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor Realizado (R$)</label>
                     <input
@@ -1636,7 +1622,7 @@ export default function VendasTecnologiaPage() {
                       value={formMetaCategoria.valor_realizado}
                       onChange={(e) => setFormMetaCategoria({ ...formMetaCategoria, valor_realizado: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1646,7 +1632,6 @@ export default function VendasTecnologiaPage() {
                       step="0.01"
                     />
                   </div>
-
                   {formMetaCategoria.categoria && (
                     <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(155, 89, 182, 0.1)' }}>
                       <p className="text-sm flex items-center gap-2" style={{ color: theme.purple }}>
@@ -1660,14 +1645,19 @@ export default function VendasTecnologiaPage() {
                   )}
                 </div>
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalMetaCategoria(false)}
                   className="px-4 py-2 rounded-lg transition-colors"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
+                    e.currentTarget.style.color = theme.text; 
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'transparent'; 
+                    e.currentTarget.style.color = theme.textSecondary; 
+                  }}
                 >
                   Cancelar
                 </button>
@@ -1675,8 +1665,8 @@ export default function VendasTecnologiaPage() {
                   onClick={handleSalvarMetaCategoria}
                   className="px-4 py-2 rounded-lg transition-all"
                   style={{ backgroundColor: theme.purple, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8e44ad'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.purple}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
                 >
                   {metaCategoriaEditando ? 'Salvar Alterações' : 'Cadastrar Meta'}
                 </button>
@@ -1703,7 +1693,6 @@ export default function VendasTecnologiaPage() {
                   </div>
                 </div>
               </div>
-
               <div className="px-6 py-4">
                 <p style={{ color: theme.textSecondary }}>
                   Você tem certeza que deseja excluir <span className="font-bold" style={{ color: theme.text }}>{itemParaExcluir?.nome}</span>?
@@ -1714,14 +1703,19 @@ export default function VendasTecnologiaPage() {
                   </p>
                 )}
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalExcluir(false)}
                   className="px-4 py-2 rounded-lg transition-colors"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
+                    e.currentTarget.style.color = theme.text; 
+                  }}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
+                    e.currentTarget.style.backgroundColor = 'transparent'; 
+                    e.currentTarget.style.color = theme.textSecondary; 
+                  }}
                 >
                   Cancelar
                 </button>
@@ -1729,8 +1723,8 @@ export default function VendasTecnologiaPage() {
                   onClick={handleConfirmarExclusao}
                   className="px-4 py-2 rounded-lg transition-all"
                   style={{ backgroundColor: theme.danger, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c0392b'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.danger}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#c0392b'}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.danger}
                 >
                   Sim, excluir
                 </button>

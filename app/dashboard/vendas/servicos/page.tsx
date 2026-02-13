@@ -49,7 +49,8 @@ export default function VendasServicosPage() {
     success: '#27ae60',
     warning: '#f39c12',
     danger: '#e74c3c',
-    info: '#3498db'
+    info: '#3498db',
+    blue: '#3498db',  // ← corrigido: adicionada a vírgula que faltava
   }
 
   // Estados principais
@@ -58,7 +59,7 @@ export default function VendasServicosPage() {
   const [tecnicos, setTecnicos] = useState<Tecnico[]>([])
   const [metas, setMetas] = useState<MetaTecnico[]>([])
   const [fabricaMeta, setFabricaMeta] = useState<FabricaMeta | null>(null)
-  
+ 
   // Estados para modais
   const [showModalTecnico, setShowModalTecnico] = useState(false)
   const [showModalMeta, setShowModalMeta] = useState(false)
@@ -67,13 +68,13 @@ export default function VendasServicosPage() {
   const [tecnicoEditando, setTecnicoEditando] = useState<Tecnico | null>(null)
   const [metaEditando, setMetaEditando] = useState<MetaTecnico | null>(null)
   const [itemParaExcluir, setItemParaExcluir] = useState<{ id: string, nome: string, tipo: 'tecnico' | 'meta' | 'fabrica' } | null>(null)
-  
+ 
   // Estados para formulários
   const [formTecnico, setFormTecnico] = useState({
     nome: '',
     base_meta: 0
   })
-  
+ 
   const [formMeta, setFormMeta] = useState({
     tecnico_id: '',
     mes: new Date().getMonth() + 1,
@@ -120,7 +121,6 @@ export default function VendasServicosPage() {
         .from('tecnicos')
         .select('*')
         .order('nome')
-
       if (tecnicosError) throw tecnicosError
       setTecnicos(tecnicosData || [])
 
@@ -130,17 +130,15 @@ export default function VendasServicosPage() {
         .select('*, tecnicos(nome)')
         .eq('ano', ano)
         .order('mes')
-
       if (metasError) throw metasError
 
       const metasProcessadas = (metasData || []).map((meta: any) => ({
         ...meta,
         tecnico_nome: meta.tecnicos?.nome,
-        percentual: meta.valor_meta > 0 
-          ? (meta.valor_realizado / meta.valor_meta) * 100 
+        percentual: meta.valor_meta > 0
+          ? (meta.valor_realizado / meta.valor_meta) * 100
           : 0
       }))
-
       setMetas(metasProcessadas)
 
       // 3. Carregar meta da fábrica
@@ -150,7 +148,6 @@ export default function VendasServicosPage() {
         .eq('ano', ano)
         .eq('mes', new Date().getMonth() + 1)
         .maybeSingle()
-
       if (fabricaError) throw fabricaError
       
       if (fabricaData) {
@@ -160,7 +157,6 @@ export default function VendasServicosPage() {
           valor_realizado: fabricaData.valor_realizado || 0
         })
       }
-
     } catch (error) {
       console.error('Erro ao carregar dados:', error)
       toast.error('Erro ao carregar dados')
@@ -190,12 +186,10 @@ export default function VendasServicosPage() {
       toast.error('Nome do técnico é obrigatório')
       return
     }
-
     if (formTecnico.base_meta <= 0) {
       toast.error('Meta base deve ser maior que zero')
       return
     }
-
     try {
       if (tecnicoEditando) {
         const { error } = await supabase
@@ -205,7 +199,6 @@ export default function VendasServicosPage() {
             base_meta: formTecnico.base_meta
           })
           .eq('id', tecnicoEditando.id)
-
         if (error) throw error
         toast.success('Técnico atualizado com sucesso!')
       } else {
@@ -218,13 +211,10 @@ export default function VendasServicosPage() {
           }])
           .select()
           .single()
-
         if (error) throw error
         toast.success('Técnico cadastrado com sucesso!')
-
         await criarMetasPadraoParaTecnico(data.id, data.nome, data.base_meta)
       }
-
       setShowModalTecnico(false)
       carregarDados()
     } catch (error) {
@@ -241,7 +231,6 @@ export default function VendasServicosPage() {
         if ((nome === 'ANDRÉ LUCAS' && mes === 7) || (nome === 'MARCOS MARTINS' && mes === 6)) {
           valorMeta = 0
         }
-
         metasPadrao.push({
           tecnico_id: tecnicoId,
           ano: ano,
@@ -250,11 +239,9 @@ export default function VendasServicosPage() {
           valor_realizado: 0
         })
       }
-
       const { error } = await supabase
         .from('metas_tecnicos')
         .insert(metasPadrao)
-
       if (error) throw error
       toast.success('Metas padrão criadas para o técnico')
     } catch (error) {
@@ -269,7 +256,6 @@ export default function VendasServicosPage() {
         .from('tecnicos')
         .update({ ativo: !tecnico.ativo })
         .eq('id', tecnico.id)
-
       if (error) throw error
       toast.success(`Técnico ${tecnico.ativo ? 'desativado' : 'ativado'} com sucesso!`)
       carregarDados()
@@ -282,7 +268,7 @@ export default function VendasServicosPage() {
   // ========== CRUD METAS ==========
   function handleNovaMeta(tecnicoId?: string, mes?: number) {
     const tecnico = tecnicos.find(t => t.id === tecnicoId)
-    
+   
     setMetaEditando(null)
     setFormMeta({
       tecnico_id: tecnicoId || tecnicos[0]?.id || '',
@@ -309,12 +295,10 @@ export default function VendasServicosPage() {
       toast.error('Selecione um técnico')
       return
     }
-
     if (formMeta.valor_meta < 0 || formMeta.valor_realizado < 0) {
       toast.error('Valores não podem ser negativos')
       return
     }
-
     try {
       if (metaEditando) {
         const { error } = await supabase
@@ -324,7 +308,6 @@ export default function VendasServicosPage() {
             valor_realizado: formMeta.valor_realizado
           })
           .eq('id', metaEditando.id)
-
         if (error) throw error
         toast.success('Meta atualizada com sucesso!')
       } else {
@@ -335,12 +318,10 @@ export default function VendasServicosPage() {
           .eq('ano', ano)
           .eq('mes', formMeta.mes)
           .maybeSingle()
-
         if (existente) {
           toast.error('Já existe uma meta para este técnico e mês')
           return
         }
-
         const { error } = await supabase
           .from('metas_tecnicos')
           .insert([{
@@ -350,11 +331,9 @@ export default function VendasServicosPage() {
             valor_meta: formMeta.valor_meta,
             valor_realizado: formMeta.valor_realizado
           }])
-
         if (error) throw error
         toast.success('Meta cadastrada com sucesso!')
       }
-
       setShowModalMeta(false)
       carregarDados()
     } catch (error) {
@@ -375,7 +354,6 @@ export default function VendasServicosPage() {
   async function handleSalvarFabrica() {
     try {
       const mesAtual = new Date().getMonth() + 1
-
       if (fabricaMeta?.id) {
         const { error } = await supabase
           .from('fabrica_metas')
@@ -384,7 +362,6 @@ export default function VendasServicosPage() {
             valor_realizado: formFabrica.valor_realizado
           })
           .eq('id', fabricaMeta.id)
-
         if (error) throw error
         toast.success('Meta da fábrica atualizada!')
       } else {
@@ -396,11 +373,9 @@ export default function VendasServicosPage() {
             valor_meta: formFabrica.valor_meta,
             valor_realizado: formFabrica.valor_realizado
           }])
-
         if (error) throw error
         toast.success('Meta da fábrica cadastrada!')
       }
-
       setShowModalFabrica(false)
       carregarDados()
     } catch (error) {
@@ -417,7 +392,6 @@ export default function VendasServicosPage() {
 
   async function handleConfirmarExclusao() {
     if (!itemParaExcluir) return
-
     try {
       if (itemParaExcluir.tipo === 'tecnico') {
         const { data: vendas } = await supabase
@@ -425,20 +399,19 @@ export default function VendasServicosPage() {
           .select('id')
           .eq('tecnico_id', itemParaExcluir.id)
           .limit(1)
-
         if (vendas && vendas.length > 0) {
           await supabase
             .from('tecnicos')
             .update({ ativo: false })
             .eq('id', itemParaExcluir.id)
-          
+         
           toast.success('Técnico desativado (possui vendas associadas)')
         } else {
           await supabase
             .from('tecnicos')
             .delete()
             .eq('id', itemParaExcluir.id)
-          
+         
           toast.success('Técnico excluído com sucesso!')
         }
       } else if (itemParaExcluir.tipo === 'meta') {
@@ -446,18 +419,17 @@ export default function VendasServicosPage() {
           .from('metas_tecnicos')
           .delete()
           .eq('id', itemParaExcluir.id)
-        
+       
         toast.success('Meta excluída com sucesso!')
       } else if (itemParaExcluir.tipo === 'fabrica') {
         await supabase
           .from('fabrica_metas')
           .delete()
           .eq('id', itemParaExcluir.id)
-        
+       
         toast.success('Meta da fábrica excluída!')
         setFabricaMeta(null)
       }
-
       setShowModalExcluir(false)
       carregarDados()
     } catch (error) {
@@ -489,7 +461,7 @@ export default function VendasServicosPage() {
     const totalMeta = metasTecnico.reduce((acc, m) => acc + m.valor_meta, 0)
     const totalRealizado = metasTecnico.reduce((acc, m) => acc + m.valor_realizado, 0)
     const percentual = totalMeta > 0 ? (totalRealizado / totalMeta) * 100 : 0
-    
+   
     return { totalMeta, totalRealizado, percentual }
   }
 
@@ -516,8 +488,8 @@ export default function VendasServicosPage() {
   totaisGerais.totalMeta += fabricaMeta?.valor_meta || 28525
   totaisGerais.totalRealizado += fabricaMeta?.valor_realizado || 0
 
-  const percentualGeral = totaisGerais.totalMeta > 0 
-    ? (totaisGerais.totalRealizado / totaisGerais.totalMeta) * 100 
+  const percentualGeral = totaisGerais.totalMeta > 0
+    ? (totaisGerais.totalRealizado / totaisGerais.totalMeta) * 100
     : 0
 
   if (loading) {
@@ -540,7 +512,7 @@ export default function VendasServicosPage() {
               <button
                 onClick={() => router.back()}
                 className="p-2 rounded-lg transition-colors"
-                style={{ color: theme.textSecondary, hover: { backgroundColor: 'rgba(255,255,255,0.1)' } }}
+                style={{ color: theme.textSecondary }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
@@ -558,13 +530,12 @@ export default function VendasServicosPage() {
                 </p>
               </div>
             </div>
-
             <div className="flex items-center gap-3">
               <select
                 value={ano}
                 onChange={(e) => setAno(Number(e.target.value))}
                 className="px-4 py-2 text-sm rounded-lg border focus:ring-2 outline-none"
-                style={{ 
+                style={{
                   backgroundColor: 'rgba(0, 0, 0, 0.2)',
                   borderColor: theme.border,
                   color: theme.text
@@ -574,7 +545,6 @@ export default function VendasServicosPage() {
                   <option key={a} value={a}>{a}</option>
                 ))}
               </select>
-
               <button
                 onClick={handleNovoTecnico}
                 className="px-4 py-2 text-sm rounded-lg transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
@@ -638,11 +608,11 @@ export default function VendasServicosPage() {
                       {percentualGeral.toFixed(1)}%
                     </p>
                     <div className="w-full rounded-full h-2 mt-2" style={{ backgroundColor: theme.border }}>
-                      <div 
+                      <div
                         className="rounded-full h-2"
-                        style={{ 
+                        style={{
                           backgroundColor: '#9b59b6',
-                          width: `${Math.min(percentualGeral, 100)}%` 
+                          width: `${Math.min(percentualGeral, 100)}%`
                         }}
                       />
                     </div>
@@ -687,7 +657,6 @@ export default function VendasServicosPage() {
               {tecnicos.filter(t => t.ativo).map((tecnico) => {
                 const totais = calcularTotaisTecnico(tecnico.id)
                 const statusAnual = getStatusMeta(totais.percentual)
-
                 return (
                   <div key={tecnico.id} className="rounded-xl shadow-sm overflow-hidden border hover:shadow-md transition-all" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                     {/* Cabeçalho do Técnico */}
@@ -715,7 +684,6 @@ export default function VendasServicosPage() {
                             </div>
                           </div>
                         </div>
-
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleNovaMeta(tecnico.id)}
@@ -759,7 +727,6 @@ export default function VendasServicosPage() {
                           </button>
                         </div>
                       </div>
-
                       {/* Barra de progresso anual */}
                       <div className="mt-4">
                         <div className="flex justify-between items-center text-sm mb-1">
@@ -769,9 +736,9 @@ export default function VendasServicosPage() {
                           </span>
                         </div>
                         <div className="w-full rounded-full h-2.5" style={{ backgroundColor: theme.border }}>
-                          <div 
+                          <div
                             className={`h-2.5 rounded-full transition-all duration-500`}
-                            style={{ 
+                            style={{
                               width: `${Math.min(totais.percentual, 100)}%`,
                               backgroundColor: totais.percentual >= 100 ? theme.success : totais.percentual >= 70 ? theme.warning : theme.danger
                             }}
@@ -798,16 +765,19 @@ export default function VendasServicosPage() {
                             const mes = index + 1
                             const meta = getMetaPorTecnicoEMes(tecnico.id, mes)
                             const temFerias = (tecnico.nome === 'ANDRÉ LUCAS' && mes === 7) || (tecnico.nome === 'MARCOS MARTINS' && mes === 6)
-                            const percentual = meta?.valor_meta > 0 ? (meta.valor_realizado / meta.valor_meta) * 100 : 0
+                            const percentual = meta && meta.valor_meta > 0 ? (meta.valor_realizado / meta.valor_meta) * 100 : 0
                             const status = getStatusMeta(percentual)
-
                             return (
-                              <tr key={mes} className="transition-colors hover:bg-opacity-10" style={{ backgroundColor: 'transparent', hover: { backgroundColor: 'rgba(255,255,255,0.05)' } }}>
+                              <tr key={mes} className="transition-colors hover:bg-white/5" style={{ backgroundColor: 'transparent' }}>
                                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium" style={{ color: theme.text }}>
                                   <div className="flex items-center gap-2">
                                     {mesesAbreviados[index]}
                                     {temFerias && (
-                                      <span className="px-2 py-0.5 text-xs rounded-full" style={{ backgroundColor: 'rgba(243, 156, 18, 0.2)', color: theme.warning, border: '1px solid rgba(243, 156, 18, 0.3)' }}>
+                                      <span className="px-2 py-0.5 text-xs rounded-full" style={{
+                                        backgroundColor: 'rgba(243, 156, 18, 0.2)',
+                                        color: theme.warning,
+                                        border: '1px solid rgba(243, 156, 18, 0.3)'
+                                      }}>
                                         Férias
                                       </span>
                                     )}
@@ -827,7 +797,11 @@ export default function VendasServicosPage() {
                                 </td>
                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                                   {meta ? (
-                                    <span className="px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: status.bg, color: status.cor, border: `1px solid ${status.cor}30` }}>
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium" style={{
+                                      backgroundColor: status.bg,
+                                      color: status.cor,
+                                      border: `1px solid ${status.cor}30`
+                                    }}>
                                       {status.icone} {status.texto}
                                     </span>
                                   ) : (
@@ -837,17 +811,21 @@ export default function VendasServicosPage() {
                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
                                   {meta ? (
                                     <div className="flex items-center justify-center gap-2">
-                                      <span className="font-semibold" style={{ 
-                                        color: percentual >= 100 ? theme.success : percentual >= 70 ? theme.warning : theme.danger 
+                                      <span className="font-semibold" style={{
+                                        color: percentual >= 100 ? theme.success :
+                                              percentual >= 70 ? theme.warning :
+                                              percentual > 0 ? theme.danger : theme.textMuted
                                       }}>
                                         {percentual.toFixed(1)}%
                                       </span>
                                       <div className="w-16 rounded-full h-1.5" style={{ backgroundColor: theme.border }}>
-                                        <div 
+                                        <div
                                           className="h-1.5 rounded-full"
-                                          style={{ 
+                                          style={{
                                             width: `${Math.min(percentual, 100)}%`,
-                                            backgroundColor: percentual >= 100 ? theme.success : percentual >= 70 ? theme.warning : theme.danger
+                                            backgroundColor: percentual >= 100 ? theme.success :
+                                                          percentual >= 70 ? theme.warning :
+                                                          theme.danger
                                           }}
                                         />
                                       </div>
@@ -862,20 +840,16 @@ export default function VendasServicosPage() {
                                       <>
                                         <button
                                           onClick={() => handleEditarMeta(meta)}
-                                          className="p-1.5 rounded-md transition-colors"
-                                          style={{ color: theme.primary }}
-                                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                          className="p-1.5 rounded-md transition-colors hover:bg-blue-500/20"
+                                          style={{ color: theme.blue }}
                                           title="Editar meta"
                                         >
                                           ✏️
                                         </button>
                                         <button
                                           onClick={() => handleExcluirClick(meta.id, `Meta ${nomeMes}`, 'meta')}
-                                          className="p-1.5 rounded-md transition-colors"
+                                          className="p-1.5 rounded-md transition-colors hover:bg-red-500/20"
                                           style={{ color: theme.danger }}
-                                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                           title="Excluir meta"
                                         >
                                           🗑️
@@ -884,10 +858,8 @@ export default function VendasServicosPage() {
                                     ) : (
                                       <button
                                         onClick={() => handleNovaMeta(tecnico.id, mes)}
-                                        className="p-1.5 rounded-md transition-colors"
+                                        className="p-1.5 rounded-md transition-colors hover:bg-green-500/20"
                                         style={{ color: theme.success }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(39, 174, 96, 0.1)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         title="Adicionar meta"
                                       >
                                         ➕
@@ -910,8 +882,8 @@ export default function VendasServicosPage() {
                               </span>
                             </td>
                             <td className="px-4 py-3 text-sm text-center">
-                              <span className="font-semibold" style={{ 
-                                color: totais.percentual >= 100 ? theme.success : totais.percentual >= 70 ? theme.warning : theme.danger 
+                              <span className="font-semibold" style={{
+                                color: totais.percentual >= 100 ? theme.success : totais.percentual >= 70 ? theme.warning : theme.danger
                               }}>
                                 {totais.percentual.toFixed(1)}%
                               </span>
@@ -957,7 +929,6 @@ export default function VendasServicosPage() {
                         </p>
                       </div>
                     </div>
-
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleEditarFabrica}
@@ -984,7 +955,6 @@ export default function VendasServicosPage() {
                     </div>
                   </div>
                 </div>
-
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
@@ -1064,7 +1034,6 @@ export default function VendasServicosPage() {
                   </button>
                 </div>
               </div>
-
               <div className="px-6 py-4">
                 <div className="space-y-4">
                   <div>
@@ -1074,7 +1043,7 @@ export default function VendasServicosPage() {
                       value={formTecnico.nome}
                       onChange={(e) => setFormTecnico({ ...formTecnico, nome: e.target.value.toUpperCase() })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1083,7 +1052,6 @@ export default function VendasServicosPage() {
                       autoFocus
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Meta Base Mensal (R$) *</label>
                     <input
@@ -1091,7 +1059,7 @@ export default function VendasServicosPage() {
                       value={formTecnico.base_meta}
                       onChange={(e) => setFormTecnico({ ...formTecnico, base_meta: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1101,7 +1069,6 @@ export default function VendasServicosPage() {
                       step="0.01"
                     />
                   </div>
-
                   {!tecnicoEditando && (
                     <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(231, 76, 60, 0.1)' }}>
                       <p className="text-sm flex items-center gap-2" style={{ color: theme.primary }}>
@@ -1112,7 +1079,6 @@ export default function VendasServicosPage() {
                   )}
                 </div>
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalTecnico(false)}
@@ -1160,8 +1126,7 @@ export default function VendasServicosPage() {
                   </button>
                 </div>
               </div>
-
-              <div className="bg-white px-6 py-4" style={{ backgroundColor: theme.card }}>
+              <div className="px-6 py-4" style={{ backgroundColor: theme.card }}>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Técnico *</label>
@@ -1169,7 +1134,7 @@ export default function VendasServicosPage() {
                       value={formMeta.tecnico_id}
                       onChange={(e) => setFormMeta({ ...formMeta, tecnico_id: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1182,14 +1147,13 @@ export default function VendasServicosPage() {
                       ))}
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Mês *</label>
                     <select
                       value={formMeta.mes}
                       onChange={(e) => setFormMeta({ ...formMeta, mes: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1201,7 +1165,6 @@ export default function VendasServicosPage() {
                       ))}
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor da Meta (R$)</label>
                     <input
@@ -1209,7 +1172,7 @@ export default function VendasServicosPage() {
                       value={formMeta.valor_meta}
                       onChange={(e) => setFormMeta({ ...formMeta, valor_meta: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1219,7 +1182,6 @@ export default function VendasServicosPage() {
                       step="0.01"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor Realizado (R$)</label>
                     <input
@@ -1227,7 +1189,7 @@ export default function VendasServicosPage() {
                       value={formMeta.valor_realizado}
                       onChange={(e) => setFormMeta({ ...formMeta, valor_realizado: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1239,7 +1201,6 @@ export default function VendasServicosPage() {
                   </div>
                 </div>
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalMeta(false)}
@@ -1287,7 +1248,6 @@ export default function VendasServicosPage() {
                   </button>
                 </div>
               </div>
-
               <div className="px-6 py-4" style={{ backgroundColor: theme.card }}>
                 <div className="space-y-4">
                   <div>
@@ -1297,7 +1257,7 @@ export default function VendasServicosPage() {
                       value={formFabrica.valor_meta}
                       onChange={(e) => setFormFabrica({ ...formFabrica, valor_meta: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1307,7 +1267,6 @@ export default function VendasServicosPage() {
                       step="0.01"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor Realizado (R$)</label>
                     <input
@@ -1315,7 +1274,7 @@ export default function VendasServicosPage() {
                       value={formFabrica.valor_realizado}
                       onChange={(e) => setFormFabrica({ ...formFabrica, valor_realizado: Number(e.target.value) })}
                       className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                      style={{ 
+                      style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
@@ -1325,7 +1284,6 @@ export default function VendasServicosPage() {
                       step="0.01"
                     />
                   </div>
-
                   <div className="p-4 rounded-lg" style={{ backgroundColor: 'rgba(243, 156, 18, 0.1)' }}>
                     <p className="text-sm flex items-center gap-2" style={{ color: theme.warning }}>
                       <span className="text-lg">ℹ️</span>
@@ -1334,7 +1292,6 @@ export default function VendasServicosPage() {
                   </div>
                 </div>
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalFabrica(false)}
@@ -1377,7 +1334,6 @@ export default function VendasServicosPage() {
                   </div>
                 </div>
               </div>
-
               <div className="px-6 py-4">
                 <p style={{ color: theme.textSecondary }}>
                   Você tem certeza que deseja excluir <span className="font-bold" style={{ color: theme.text }}>{itemParaExcluir?.nome}</span>?
@@ -1388,7 +1344,6 @@ export default function VendasServicosPage() {
                   </p>
                 )}
               </div>
-
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalExcluir(false)}
