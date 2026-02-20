@@ -50,7 +50,8 @@ export default function VendasServicosPage() {
     warning: '#f39c12',
     danger: '#e74c3c',
     info: '#3498db',
-    blue: '#3498db',  // ← corrigido: adicionada a vírgula que faltava
+    blue: '#3498db',
+    purple: '#9b59b6'
   }
 
   // Estados principais
@@ -69,7 +70,7 @@ export default function VendasServicosPage() {
   const [metaEditando, setMetaEditando] = useState<MetaTecnico | null>(null)
   const [itemParaExcluir, setItemParaExcluir] = useState<{ id: string, nome: string, tipo: 'tecnico' | 'meta' | 'fabrica' } | null>(null)
  
-  // Estados para formulários
+  // Estados para formulários - USANDO STRINGS PARA VALORES META
   const [formTecnico, setFormTecnico] = useState({
     nome: '',
     base_meta: 0
@@ -78,8 +79,8 @@ export default function VendasServicosPage() {
   const [formMeta, setFormMeta] = useState({
     tecnico_id: '',
     mes: new Date().getMonth() + 1,
-    valor_meta: 0,
-    valor_realizado: 0
+    valor_meta: '',
+    valor_realizado: ''
   })
 
   const [formFabrica, setFormFabrica] = useState({
@@ -98,6 +99,13 @@ export default function VendasServicosPage() {
   ]
 
   const anos = [2024, 2025, 2026, 2027]
+
+  // Função auxiliar para inputs numéricos
+  const handleNumberInput = (value: string, field: string, setter: Function) => {
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setter((prev: any) => ({ ...prev, [field]: value }))
+    }
+  }
 
   useEffect(() => {
     async function verificarAuth() {
@@ -273,8 +281,8 @@ export default function VendasServicosPage() {
     setFormMeta({
       tecnico_id: tecnicoId || tecnicos[0]?.id || '',
       mes: mes || new Date().getMonth() + 1,
-      valor_meta: tecnico?.base_meta || 0,
-      valor_realizado: 0
+      valor_meta: '',
+      valor_realizado: ''
     })
     setShowModalMeta(true)
   }
@@ -284,8 +292,8 @@ export default function VendasServicosPage() {
     setFormMeta({
       tecnico_id: meta.tecnico_id,
       mes: meta.mes,
-      valor_meta: meta.valor_meta,
-      valor_realizado: meta.valor_realizado
+      valor_meta: meta.valor_meta.toString(),
+      valor_realizado: meta.valor_realizado.toString()
     })
     setShowModalMeta(true)
   }
@@ -295,17 +303,23 @@ export default function VendasServicosPage() {
       toast.error('Selecione um técnico')
       return
     }
-    if (formMeta.valor_meta < 0 || formMeta.valor_realizado < 0) {
+
+    // Converter strings para números
+    const valorMeta = formMeta.valor_meta === '' ? 0 : Number(formMeta.valor_meta)
+    const valorRealizado = formMeta.valor_realizado === '' ? 0 : Number(formMeta.valor_realizado)
+
+    if (valorMeta < 0 || valorRealizado < 0) {
       toast.error('Valores não podem ser negativos')
       return
     }
+
     try {
       if (metaEditando) {
         const { error } = await supabase
           .from('metas_tecnicos')
           .update({
-            valor_meta: formMeta.valor_meta,
-            valor_realizado: formMeta.valor_realizado
+            valor_meta: valorMeta,
+            valor_realizado: valorRealizado
           })
           .eq('id', metaEditando.id)
         if (error) throw error
@@ -328,8 +342,8 @@ export default function VendasServicosPage() {
             tecnico_id: formMeta.tecnico_id,
             ano: ano,
             mes: formMeta.mes,
-            valor_meta: formMeta.valor_meta,
-            valor_realizado: formMeta.valor_realizado
+            valor_meta: valorMeta,
+            valor_realizado: valorRealizado
           }])
         if (error) throw error
         toast.success('Meta cadastrada com sucesso!')
@@ -445,21 +459,21 @@ export default function VendasServicosPage() {
 
   function getStatusMeta(percentual: number): { texto: string, cor: string, bg: string, icone: string } {
     if (percentual >= 100) {
-      return { texto: 'Batida', cor: '#27ae60', bg: 'rgba(39, 174, 96, 0.2)', icone: '🎯' }
+      return { texto: 'Batida', cor: theme.success, bg: 'rgba(39, 174, 96, 0.2)', icone: '🎯' }
     }
     if (percentual >= 70) {
-      return { texto: 'Próximo', cor: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)', icone: '⚡' }
+      return { texto: 'Próximo', cor: theme.warning, bg: 'rgba(243, 156, 18, 0.2)', icone: '⚡' }
     }
     if (percentual > 0) {
-      return { texto: 'Abaixo', cor: '#e74c3c', bg: 'rgba(231, 76, 60, 0.2)', icone: '⚠️' }
+      return { texto: 'Abaixo', cor: theme.danger, bg: 'rgba(231, 76, 60, 0.2)', icone: '⚠️' }
     }
-    return { texto: 'Não iniciada', cor: '#999999', bg: 'rgba(255, 255, 255, 0.1)', icone: '⏳' }
+    return { texto: 'Não iniciada', cor: theme.textMuted, bg: 'rgba(255, 255, 255, 0.1)', icone: '⏳' }
   }
 
   function calcularTotaisTecnico(tecnicoId: string) {
     const metasTecnico = metas.filter(m => m.tecnico_id === tecnicoId)
-    const totalMeta = metasTecnico.reduce((acc, m) => acc + m.valor_meta, 0)
-    const totalRealizado = metasTecnico.reduce((acc, m) => acc + m.valor_realizado, 0)
+    const totalMeta = metasTecnico.reduce((acc, m) => acc + (m.valor_meta || 0), 0)
+    const totalRealizado = metasTecnico.reduce((acc, m) => acc + (m.valor_realizado || 0), 0)
     const percentual = totalMeta > 0 ? (totalRealizado / totalMeta) * 100 : 0
    
     return { totalMeta, totalRealizado, percentual }
@@ -511,10 +525,8 @@ export default function VendasServicosPage() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.back()}
-                className="p-2 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors hover:bg-white/10"
                 style={{ color: theme.textSecondary }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <span className="text-xl">←</span>
               </button>
@@ -600,18 +612,18 @@ export default function VendasServicosPage() {
                 </div>
               </div>
 
-              <div className="rounded-xl shadow-sm p-6 border-l-4 hover:shadow-md transition-all" style={{ backgroundColor: theme.card, borderLeftColor: '#9b59b6' }}>
+              <div className="rounded-xl shadow-sm p-6 border-l-4 hover:shadow-md transition-all" style={{ backgroundColor: theme.card, borderLeftColor: theme.purple }}>
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-sm uppercase tracking-wider" style={{ color: theme.textSecondary }}>% Atingimento</p>
-                    <p className="text-2xl font-bold mt-2" style={{ color: '#9b59b6' }}>
+                    <p className="text-2xl font-bold mt-2" style={{ color: theme.purple }}>
                       {percentualGeral.toFixed(1)}%
                     </p>
                     <div className="w-full rounded-full h-2 mt-2" style={{ backgroundColor: theme.border }}>
                       <div
                         className="rounded-full h-2"
                         style={{
-                          backgroundColor: '#9b59b6',
+                          backgroundColor: theme.purple,
                           width: `${Math.min(percentualGeral, 100)}%`
                         }}
                       />
@@ -697,30 +709,24 @@ export default function VendasServicosPage() {
                           </button>
                           <button
                             onClick={() => handleEditarTecnico(tecnico)}
-                            className="p-2 rounded-lg transition-colors"
+                            className="p-2 rounded-lg transition-colors hover:bg-red-500/20"
                             style={{ color: theme.primary }}
-                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'; e.currentTarget.style.color = theme.primaryDark; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.primary; }}
                             title="Editar técnico"
                           >
                             ✏️
                           </button>
                           <button
                             onClick={() => handleToggleAtivo(tecnico)}
-                            className="p-2 rounded-lg transition-colors"
+                            className="p-2 rounded-lg transition-colors hover:bg-red-500/20"
                             style={{ color: theme.danger }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             title="Desativar técnico"
                           >
                             🔴
                           </button>
                           <button
                             onClick={() => handleExcluirClick(tecnico.id, tecnico.nome, 'tecnico')}
-                            className="p-2 rounded-lg transition-colors"
+                            className="p-2 rounded-lg transition-colors hover:bg-red-500/20"
                             style={{ color: theme.danger }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             title="Excluir técnico"
                           >
                             🗑️
@@ -737,7 +743,7 @@ export default function VendasServicosPage() {
                         </div>
                         <div className="w-full rounded-full h-2.5" style={{ backgroundColor: theme.border }}>
                           <div
-                            className={`h-2.5 rounded-full transition-all duration-500`}
+                            className="h-2.5 rounded-full transition-all duration-500"
                             style={{
                               width: `${Math.min(totais.percentual, 100)}%`,
                               backgroundColor: totais.percentual >= 100 ? theme.success : totais.percentual >= 70 ? theme.warning : theme.danger
@@ -897,10 +903,8 @@ export default function VendasServicosPage() {
                                       handleExcluirClick(meta.id, `Todas as metas de ${tecnico.nome}`, 'meta')
                                     })
                                 }}
-                                className="p-1.5 rounded-md transition-colors"
+                                className="p-1.5 rounded-md transition-colors hover:bg-red-500/20"
                                 style={{ color: theme.danger }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                 title="Excluir todas as metas"
                               >
                                 🗑️
@@ -943,10 +947,8 @@ export default function VendasServicosPage() {
                       {fabricaMeta?.id && (
                         <button
                           onClick={() => handleExcluirClick(fabricaMeta.id, 'Meta da Fábrica', 'fabrica')}
-                          className="p-2 rounded-lg transition-colors"
+                          className="p-2 rounded-lg transition-colors hover:bg-red-500/20"
                           style={{ color: theme.danger }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           title="Excluir meta"
                         >
                           🗑️
@@ -971,7 +973,7 @@ export default function VendasServicosPage() {
                     </div>
                     <div>
                       <p className="text-sm mb-1" style={{ color: theme.textSecondary }}>% Atingimento</p>
-                      <p className="text-2xl font-bold" style={{ color: '#9b59b6' }}>
+                      <p className="text-2xl font-bold" style={{ color: theme.purple }}>
                         {fabricaMeta?.valor_meta ? ((fabricaMeta.valor_realizado / fabricaMeta.valor_meta) * 100).toFixed(1) : 0}%
                       </p>
                     </div>
@@ -1027,8 +1029,6 @@ export default function VendasServicosPage() {
                     onClick={() => setShowModalTecnico(false)}
                     className="rounded-md text-2xl hover:text-white transition-colors"
                     style={{ color: theme.textMuted }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = theme.text}
-                    onMouseLeave={(e) => e.currentTarget.style.color = theme.textMuted}
                   >
                     ×
                   </button>
@@ -1082,19 +1082,15 @@ export default function VendasServicosPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalTecnico(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSalvarTecnico}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:shadow-lg"
                   style={{ backgroundColor: theme.primary, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.primaryDark}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.primary}
                 >
                   {tecnicoEditando ? 'Salvar Alterações' : 'Cadastrar Técnico'}
                 </button>
@@ -1104,7 +1100,7 @@ export default function VendasServicosPage() {
         </div>
       )}
 
-      {/* MODAL: Meta */}
+      {/* MODAL: Meta - CORRIGIDO */}
       {showModalMeta && (
         <div className="fixed inset-0 z-[9999] overflow-y-auto">
           <div className="fixed inset-0 bg-black bg-opacity-75 transition-opacity" onClick={() => setShowModalMeta(false)} />
@@ -1119,14 +1115,12 @@ export default function VendasServicosPage() {
                     onClick={() => setShowModalMeta(false)}
                     className="rounded-md text-2xl hover:text-white transition-colors"
                     style={{ color: theme.textMuted }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = theme.text}
-                    onMouseLeave={(e) => e.currentTarget.style.color = theme.textMuted}
                   >
                     ×
                   </button>
                 </div>
               </div>
-              <div className="px-6 py-4" style={{ backgroundColor: theme.card }}>
+              <div className="px-6 py-4">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Técnico *</label>
@@ -1168,35 +1162,33 @@ export default function VendasServicosPage() {
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor da Meta (R$)</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={formMeta.valor_meta}
-                      onChange={(e) => setFormMeta({ ...formMeta, valor_meta: Number(e.target.value) })}
-                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                      onChange={(e) => handleNumberInput(e.target.value, 'valor_meta', setFormMeta)}
+                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
                       }}
-                      placeholder="0,00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Digite o valor"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor Realizado (R$)</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={formMeta.valor_realizado}
-                      onChange={(e) => setFormMeta({ ...formMeta, valor_realizado: Number(e.target.value) })}
-                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                      onChange={(e) => handleNumberInput(e.target.value, 'valor_realizado', setFormMeta)}
+                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
                       }}
-                      placeholder="0,00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Digite o valor"
                     />
                   </div>
                 </div>
@@ -1204,19 +1196,15 @@ export default function VendasServicosPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalMeta(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSalvarMeta}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:shadow-lg"
                   style={{ backgroundColor: theme.primary, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.primaryDark}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.primary}
                 >
                   {metaEditando ? 'Salvar Alterações' : 'Cadastrar Meta'}
                 </button>
@@ -1241,14 +1229,12 @@ export default function VendasServicosPage() {
                     onClick={() => setShowModalFabrica(false)}
                     className="rounded-md text-2xl hover:text-white transition-colors"
                     style={{ color: theme.textMuted }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = theme.text}
-                    onMouseLeave={(e) => e.currentTarget.style.color = theme.textMuted}
                   >
                     ×
                   </button>
                 </div>
               </div>
-              <div className="px-6 py-4" style={{ backgroundColor: theme.card }}>
+              <div className="px-6 py-4">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Meta Mensal (R$)</label>
@@ -1295,19 +1281,15 @@ export default function VendasServicosPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalFabrica(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSalvarFabrica}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:shadow-lg"
                   style={{ backgroundColor: theme.primary, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.primaryDark}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.primary}
                 >
                   Salvar Alterações
                 </button>
@@ -1347,19 +1329,15 @@ export default function VendasServicosPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalExcluir(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = theme.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleConfirmarExclusao}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:bg-[#c0392b]"
                   style={{ backgroundColor: theme.danger, color: 'white' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c0392b'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = theme.danger}
                 >
                   Sim, excluir
                 </button>
