@@ -70,7 +70,7 @@ export default function LogisticaPage() {
   const [formRegistro, setFormRegistro] = useState({
     placa: '',
     data: new Date().toISOString().split('T')[0],
-    km_rodados: '',  // ← string vazia
+    km_rodados: '',  // ← mudado para string vazia
     diesel_litros: '',
     diesel_valor: '',
     manutencao_descricao: '',
@@ -152,20 +152,20 @@ export default function LogisticaPage() {
   }
 
   function handleEditarRegistro(registro: RegistroLogistica) {
-  setRegistroEditando(registro)
-  setFormRegistro({
-    placa: registro.placa,
-    data: registro.data.split('T')[0],
-    km_rodados: registro.km_rodados ? registro.km_rodados.toString() : '',
-    diesel_litros: registro.diesel_litros ? registro.diesel_litros.toString() : '',
-    diesel_valor: registro.diesel_valor ? registro.diesel_valor.toString() : '',
-    manutencao_descricao: registro.manutencao_descricao || '',
-    manutencao_valor: registro.manutencao_valor ? registro.manutencao_valor.toString() : '',
-    motorista: registro.motorista || '',
-    observacao: registro.observacao || ''
-  })
-  setShowModalRegistro(true)
-}
+    setRegistroEditando(registro)
+    setFormRegistro({
+      placa: registro.placa,
+      data: registro.data.split('T')[0],
+      km_rodados: registro.km_rodados ? registro.km_rodados.toString() : '',
+      diesel_litros: registro.diesel_litros ? registro.diesel_litros.toString() : '',
+      diesel_valor: registro.diesel_valor ? registro.diesel_valor.toString() : '',
+      manutencao_descricao: registro.manutencao_descricao || '',
+      manutencao_valor: registro.manutencao_valor ? registro.manutencao_valor.toString() : '',
+      motorista: registro.motorista || '',
+      observacao: registro.observacao || ''
+    })
+    setShowModalRegistro(true)
+  }
 
   async function handleSalvarRegistro() {
     if (!formRegistro.placa.trim()) {
@@ -227,31 +227,6 @@ export default function LogisticaPage() {
     } catch (error) {
       console.error('Erro ao salvar registro:', error)
       toast.error('Erro ao salvar registro')
-    }
-  }
-
-  // ========== EXCLUSÃO ==========
-  function handleExcluirClick(id: string, nome: string) {
-    setItemParaExcluir({ id, nome })
-    setShowModalExcluir(true)
-  }
-
-  async function handleConfirmarExclusao() {
-    if (!itemParaExcluir) return
-
-    try {
-      const { error } = await supabase
-        .from('caminhoes_logistica')
-        .delete()
-        .eq('id', itemParaExcluir.id)
-
-      if (error) throw error
-      toast.success('Registro excluído com sucesso!')
-      setShowModalExcluir(false)
-      carregarRegistros()
-    } catch (error) {
-      console.error('Erro ao excluir registro:', error)
-      toast.error('Erro ao excluir registro')
     }
   }
 
