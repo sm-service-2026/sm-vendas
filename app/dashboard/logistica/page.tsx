@@ -136,15 +136,15 @@ export default function LogisticaPage() {
 
   // ========== CRUD REGISTROS ==========
   function handleNovoRegistro() {
-    setRegistroEditando(null)
+  setRegistroEditando(null)
     setFormRegistro({
       placa: '',
       data: new Date().toISOString().split('T')[0],
-      km_rodados: 0,
-      diesel_litros: 0,
-      diesel_valor: 0,
+      km_rodados: '',           
+      diesel_litros: '',
+      diesel_valor: '',         
       manutencao_descricao: '',
-      manutencao_valor: 0,
+      manutencao_valor: '', 
       motorista: '',
       observacao: ''
     })
