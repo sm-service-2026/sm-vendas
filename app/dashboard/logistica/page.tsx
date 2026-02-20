@@ -70,11 +70,11 @@ export default function LogisticaPage() {
   const [formRegistro, setFormRegistro] = useState({
     placa: '',
     data: new Date().toISOString().split('T')[0],
-    km_rodados: 0,
-    diesel_litros: 0,
-    diesel_valor: 0,
+    km_rodados: '',  // ← string vazia
+    diesel_litros: '',
+    diesel_valor: '',
     manutencao_descricao: '',
-    manutencao_valor: 0,
+    manutencao_valor: '',
     motorista: '',
     observacao: ''
   })
@@ -152,20 +152,20 @@ export default function LogisticaPage() {
   }
 
   function handleEditarRegistro(registro: RegistroLogistica) {
-    setRegistroEditando(registro)
-    setFormRegistro({
-      placa: registro.placa,
-      data: registro.data.split('T')[0],
-      km_rodados: registro.km_rodados,
-      diesel_litros: registro.diesel_litros,
-      diesel_valor: registro.diesel_valor,
-      manutencao_descricao: registro.manutencao_descricao || '',
-      manutencao_valor: registro.manutencao_valor,
-      motorista: registro.motorista || '',
-      observacao: registro.observacao || ''
-    })
-    setShowModalRegistro(true)
-  }
+  setRegistroEditando(registro)
+  setFormRegistro({
+    placa: registro.placa,
+    data: registro.data.split('T')[0],
+    km_rodados: registro.km_rodados ? registro.km_rodados.toString() : '',
+    diesel_litros: registro.diesel_litros ? registro.diesel_litros.toString() : '',
+    diesel_valor: registro.diesel_valor ? registro.diesel_valor.toString() : '',
+    manutencao_descricao: registro.manutencao_descricao || '',
+    manutencao_valor: registro.manutencao_valor ? registro.manutencao_valor.toString() : '',
+    motorista: registro.motorista || '',
+    observacao: registro.observacao || ''
+  })
+  setShowModalRegistro(true)
+}
 
   async function handleSalvarRegistro() {
     if (!formRegistro.placa.trim()) {
@@ -173,12 +173,13 @@ export default function LogisticaPage() {
       return
     }
 
-    if (formRegistro.km_rodados < 0) {
-      toast.error('KM rodados não pode ser negativo')
-      return
-    }
+    // Converter strings para números
+    const kmRodados = formRegistro.km_rodados === '' ? 0 : Number(formRegistro.km_rodados)
+    const dieselLitros = formRegistro.diesel_litros === '' ? 0 : Number(formRegistro.diesel_litros)
+    const dieselValor = formRegistro.diesel_valor === '' ? 0 : Number(formRegistro.diesel_valor)
+    const manutencaoValor = formRegistro.manutencao_valor === '' ? 0 : Number(formRegistro.manutencao_valor)
 
-    if (formRegistro.diesel_valor < 0 || formRegistro.manutencao_valor < 0) {
+    if (kmRodados < 0 || dieselLitros < 0 || dieselValor < 0 || manutencaoValor < 0) {
       toast.error('Valores não podem ser negativos')
       return
     }
@@ -190,11 +191,11 @@ export default function LogisticaPage() {
           .update({
             placa: formRegistro.placa.toUpperCase(),
             data: formRegistro.data,
-            km_rodados: formRegistro.km_rodados,
-            diesel_litros: formRegistro.diesel_litros,
-            diesel_valor: formRegistro.diesel_valor,
+            km_rodados: kmRodados,
+            diesel_litros: dieselLitros,
+            diesel_valor: dieselValor,
             manutencao_descricao: formRegistro.manutencao_descricao || null,
-            manutencao_valor: formRegistro.manutencao_valor,
+            manutencao_valor: manutencaoValor,
             motorista: formRegistro.motorista || null,
             observacao: formRegistro.observacao || null
           })
@@ -208,11 +209,11 @@ export default function LogisticaPage() {
           .insert([{
             placa: formRegistro.placa.toUpperCase(),
             data: formRegistro.data,
-            km_rodados: formRegistro.km_rodados,
-            diesel_litros: formRegistro.diesel_litros,
-            diesel_valor: formRegistro.diesel_valor,
+            km_rodados: kmRodados,
+            diesel_litros: dieselLitros,
+            diesel_valor: dieselValor,
             manutencao_descricao: formRegistro.manutencao_descricao || null,
-            manutencao_valor: formRegistro.manutencao_valor,
+            manutencao_valor: manutencaoValor,
             motorista: formRegistro.motorista || null,
             observacao: formRegistro.observacao || null
           }])
@@ -861,18 +862,17 @@ export default function LogisticaPage() {
                         KM Rodados *
                       </label>
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={formRegistro.km_rodados}
-                        onChange={(e) => setFormRegistro({ ...formRegistro, km_rodados: Number(e.target.value) })}
-                        className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                        style={{ 
-                          backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                          borderColor: theme.border,
-                          color: theme.text
+                        onChange={(e) => {
+                          const value = e.target.value
+                          if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                            setFormRegistro({ ...formRegistro, km_rodados: value })
+                          }
                         }}
+                        className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="0"
-                        min="0"
-                        step="0.1"
                       />
                     </div>
 
@@ -906,18 +906,17 @@ export default function LogisticaPage() {
                           Litros
                         </label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={formRegistro.diesel_litros}
-                          onChange={(e) => setFormRegistro({ ...formRegistro, diesel_litros: Number(e.target.value) })}
-                          className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                          style={{ 
-                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                            borderColor: theme.border,
-                            color: theme.text
+                          onChange={(e) => {
+                            const value = e.target.value
+                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                              setFormRegistro({ ...formRegistro, diesel_litros: value })
+                            }
                           }}
-                          placeholder="0,0"
-                          min="0"
-                          step="0.1"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="Digite os litros"
                         />
                       </div>
                       <div>
@@ -925,18 +924,17 @@ export default function LogisticaPage() {
                           Valor (R$)
                         </label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={formRegistro.diesel_valor}
-                          onChange={(e) => setFormRegistro({ ...formRegistro, diesel_valor: Number(e.target.value) })}
-                          className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                          style={{ 
-                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                            borderColor: theme.border,
-                            color: theme.text
+                          onChange={(e) => {
+                            const value = e.target.value
+                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                              setFormRegistro({ ...formRegistro, diesel_valor: value })
+                            }
                           }}
-                          placeholder="0,00"
-                          min="0"
-                          step="0.01"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="Digite o valor"
                         />
                       </div>
                     </div>
@@ -970,18 +968,17 @@ export default function LogisticaPage() {
                           Valor (R$)
                         </label>
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={formRegistro.manutencao_valor}
-                          onChange={(e) => setFormRegistro({ ...formRegistro, manutencao_valor: Number(e.target.value) })}
-                          className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
-                          style={{ 
-                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                            borderColor: theme.border,
-                            color: theme.text
+                          onChange={(e) => {
+                            const value = e.target.value
+                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                              setFormRegistro({ ...formRegistro, manutencao_valor: value })
+                            }
                           }}
-                          placeholder="0,00"
-                          min="0"
-                          step="0.01"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          placeholder="Digite o valor"
                         />
                       </div>
                     </div>
