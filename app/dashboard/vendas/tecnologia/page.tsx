@@ -53,11 +53,11 @@ export default function VendasTecnologiaPage() {
     warning: '#f39c12',
     danger: '#e74c3c',
     info: '#3498db',
-    purple: '#e74c3c',     // corrigido: valor correto para purple
-    indigo: '#5dade2'      // corrigido: vírgula adicionada antes
+    purple: '#9b59b6',
+    indigo: '#5dade2'
   }
 
-  // Estados principais
+  // Estados principais - CORRIGIDO: metasCategorias inicia como array vazio
   const [loading, setLoading] = useState(true)
   const [ano, setAno] = useState(new Date().getFullYear())
   const [vendedores, setVendedores] = useState<VendedorTecnologia[]>([])
@@ -79,7 +79,7 @@ export default function VendasTecnologiaPage() {
   const [showModalExcluir, setShowModalExcluir] = useState(false)
   const [itemParaExcluir, setItemParaExcluir] = useState<{ id: string, nome: string, tipo: 'vendedor' | 'metaVendedor' | 'metaCategoria' } | null>(null)
 
-  // Estados para formulários
+  // Estados para formulários - USANDO STRINGS VAZIAS
   const [formVendedor, setFormVendedor] = useState({
     nome: '',
     comissao_padrao: 10
@@ -88,15 +88,15 @@ export default function VendasTecnologiaPage() {
   const [formMetaVendedor, setFormMetaVendedor] = useState({
     vendedor_id: '',
     mes: new Date().getMonth() + 1,
-    valor_meta: 0,
-    valor_realizado: 0
+    valor_meta: '',
+    valor_realizado: ''
   })
 
   const [formMetaCategoria, setFormMetaCategoria] = useState({
     categoria: '',
     mes: new Date().getMonth() + 1,
-    valor_meta: 0,
-    valor_realizado: 0
+    valor_meta: '',
+    valor_realizado: ''
   })
 
   const [filtroVendedor, setFiltroVendedor] = useState<string>('todos')
@@ -144,6 +144,13 @@ export default function VendasTecnologiaPage() {
   ]
 
   const anos = [2024, 2025, 2026, 2027]
+
+  // Função auxiliar para inputs numéricos
+  const handleNumberInput = (value: string, field: string, setter: Function) => {
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setter((prev: any) => ({ ...prev, [field]: value }))
+    }
+  }
 
   useEffect(() => {
     async function verificarAuth() {
@@ -315,8 +322,8 @@ export default function VendasTecnologiaPage() {
     setFormMetaVendedor({
       vendedor_id: vendedorId || vendedores[0]?.id || '',
       mes: mes || new Date().getMonth() + 1,
-      valor_meta: 0,
-      valor_realizado: 0
+      valor_meta: '',
+      valor_realizado: ''
     })
     setShowModalMetaVendedor(true)
   }
@@ -326,8 +333,8 @@ export default function VendasTecnologiaPage() {
     setFormMetaVendedor({
       vendedor_id: meta.vendedor_id,
       mes: meta.mes,
-      valor_meta: meta.valor_meta,
-      valor_realizado: meta.valor_realizado
+      valor_meta: meta.valor_meta.toString(),
+      valor_realizado: meta.valor_realizado.toString()
     })
     setShowModalMetaVendedor(true)
   }
@@ -337,17 +344,23 @@ export default function VendasTecnologiaPage() {
       toast.error('Selecione um vendedor')
       return
     }
-    if (formMetaVendedor.valor_meta < 0 || formMetaVendedor.valor_realizado < 0) {
+
+    // Converter strings para números
+    const valorMeta = formMetaVendedor.valor_meta === '' ? 0 : Number(formMetaVendedor.valor_meta)
+    const valorRealizado = formMetaVendedor.valor_realizado === '' ? 0 : Number(formMetaVendedor.valor_realizado)
+
+    if (valorMeta < 0 || valorRealizado < 0) {
       toast.error('Valores não podem ser negativos')
       return
     }
+
     try {
       if (metaVendedorEditando) {
         const { error } = await supabase
           .from('metas_vendedores_tecnologia')
           .update({
-            valor_meta: formMetaVendedor.valor_meta,
-            valor_realizado: formMetaVendedor.valor_realizado
+            valor_meta: valorMeta,
+            valor_realizado: valorRealizado
           })
           .eq('id', metaVendedorEditando.id)
         if (error) throw error
@@ -370,8 +383,8 @@ export default function VendasTecnologiaPage() {
             vendedor_id: formMetaVendedor.vendedor_id,
             ano: ano,
             mes: formMetaVendedor.mes,
-            valor_meta: formMetaVendedor.valor_meta,
-            valor_realizado: formMetaVendedor.valor_realizado
+            valor_meta: valorMeta,
+            valor_realizado: valorRealizado
           }])
         if (error) throw error
         toast.success('Meta cadastrada com sucesso!')
@@ -390,8 +403,8 @@ export default function VendasTecnologiaPage() {
     setFormMetaCategoria({
       categoria: categoria || categorias[0].nome,
       mes: mes || new Date().getMonth() + 1,
-      valor_meta: 0,
-      valor_realizado: 0
+      valor_meta: '',
+      valor_realizado: ''
     })
     setCategoriaSelecionada(categoria || categorias[0].nome)
     setShowModalMetaCategoria(true)
@@ -402,8 +415,8 @@ export default function VendasTecnologiaPage() {
     setFormMetaCategoria({
       categoria: meta.categoria,
       mes: meta.mes,
-      valor_meta: meta.valor_meta,
-      valor_realizado: meta.valor_realizado
+      valor_meta: meta.valor_meta.toString(),
+      valor_realizado: meta.valor_realizado.toString()
     })
     setCategoriaSelecionada(meta.categoria)
     setShowModalMetaCategoria(true)
@@ -414,17 +427,23 @@ export default function VendasTecnologiaPage() {
       toast.error('Selecione uma categoria')
       return
     }
-    if (formMetaCategoria.valor_meta < 0 || formMetaCategoria.valor_realizado < 0) {
+
+    // Converter strings para números
+    const valorMeta = formMetaCategoria.valor_meta === '' ? 0 : Number(formMetaCategoria.valor_meta)
+    const valorRealizado = formMetaCategoria.valor_realizado === '' ? 0 : Number(formMetaCategoria.valor_realizado)
+
+    if (valorMeta < 0 || valorRealizado < 0) {
       toast.error('Valores não podem ser negativos')
       return
     }
+
     try {
       if (metaCategoriaEditando) {
         const { error } = await supabase
           .from('metas_categorias_tecnologia')
           .update({
-            valor_meta: formMetaCategoria.valor_meta,
-            valor_realizado: formMetaCategoria.valor_realizado
+            valor_meta: valorMeta,
+            valor_realizado: valorRealizado
           })
           .eq('id', metaCategoriaEditando.id)
         if (error) throw error
@@ -447,8 +466,8 @@ export default function VendasTecnologiaPage() {
             categoria: formMetaCategoria.categoria,
             ano: ano,
             mes: formMetaCategoria.mes,
-            valor_meta: formMetaCategoria.valor_meta,
-            valor_realizado: formMetaCategoria.valor_realizado
+            valor_meta: valorMeta,
+            valor_realizado: valorRealizado
           }])
         if (error) throw error
         toast.success('Meta cadastrada com sucesso!')
@@ -520,22 +539,22 @@ export default function VendasTecnologiaPage() {
   }
 
   function getMetaCategoria(categoria: string, mes: number): MetaCategoria | undefined {
-    return metasCategorias.find(m => m.categoria === categoria && m.mes === mes)
+    return (metasCategorias || []).find(m => m.categoria === categoria && m.mes === mes)
   }
 
   function calcularTotalVendedor(vendedorId: string) {
     const metasVendedor = metasVendedores.filter(m => m.vendedor_id === vendedorId)
-    const totalMeta = metasVendedor.reduce((acc, m) => acc + m.valor_meta, 0)
-    const totalRealizado = metasVendedor.reduce((acc, m) => acc + m.valor_realizado, 0)
+    const totalMeta = metasVendedor.reduce((acc, m) => acc + (m.valor_meta || 0), 0)
+    const totalRealizado = metasVendedor.reduce((acc, m) => acc + (m.valor_realizado || 0), 0)
     const percentual = totalMeta > 0 ? (totalRealizado / totalMeta) * 100 : 0
    
     return { totalMeta, totalRealizado, percentual }
   }
 
   function calcularTotalCategoria(categoria: string) {
-    const metasCategoria = metasCategorias.filter(m => m.categoria === categoria)
-    const totalMeta = metasCategoria.reduce((acc, m) => acc + m.valor_meta, 0)
-    const totalRealizado = metasCategoria.reduce((acc, m) => acc + m.valor_realizado, 0)
+    const metasCategoria = (metasCategorias || []).filter(m => m.categoria === categoria)
+    const totalMeta = metasCategoria.reduce((acc, m) => acc + (m.valor_meta || 0), 0)
+    const totalRealizado = metasCategoria.reduce((acc, m) => acc + (m.valor_realizado || 0), 0)
     const percentual = totalMeta > 0 ? (totalRealizado / totalMeta) * 100 : 0
    
     return { totalMeta, totalRealizado, percentual }
@@ -587,7 +606,7 @@ export default function VendasTecnologiaPage() {
     }
   }
 
-  // Totais gerais
+  // Totais gerais - com segurança
   const totalMetaVendedores = vendedores
     .filter(v => v.ativo)
     .reduce((acc, vendedor) => {
@@ -620,9 +639,9 @@ export default function VendasTecnologiaPage() {
     ? (totalRealizadoCategorias / totalMetaCategorias) * 100
     : 0
 
-  // Total de comissões
-  const totalComissoes = metasCategorias.reduce((acc, meta) => {
-    return acc + calcularComissao(meta.valor_realizado, meta.categoria)
+  // Total de comissões - com segurança
+  const totalComissoes = (metasCategorias || []).reduce((acc, meta) => {
+    return acc + calcularComissao(meta.valor_realizado || 0, meta.categoria)
   }, 0)
 
   if (loading) {
@@ -688,7 +707,7 @@ export default function VendasTecnologiaPage() {
                 onClick={handleNovoVendedor}
                 className="px-4 py-2 text-sm rounded-lg transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
                 style={{ backgroundColor: theme.purple, color: 'white' }}
-                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#cf1c08'}
+                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
                 onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
               >
                 <span className="text-lg">+</span>
@@ -745,7 +764,7 @@ export default function VendasTecnologiaPage() {
                       onClick={handleNovoVendedor}
                       className="px-6 py-3 rounded-lg transition-all inline-flex items-center gap-2 shadow-lg"
                       style={{ backgroundColor: theme.purple, color: 'white' }}
-                      onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#cf1c08'}
+                      onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
                       onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
                     >
                       <span className="text-lg">+</span>
@@ -874,7 +893,7 @@ export default function VendasTecnologiaPage() {
                                   const percentual = meta && meta.valor_meta > 0 ? (meta.valor_realizado / meta.valor_meta) * 100 : 0
                                   const status = getStatusMeta(percentual)
                                   return (
-                                    <tr key={mes} className="transition-colors hover:bg-opacity-10" style={{ backgroundColor: 'transparent' }}>
+                                    <tr key={mes} className="transition-colors hover:bg-white/5" style={{ backgroundColor: 'transparent' }}>
                                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium" style={{ color: theme.text }}>
                                         {mesesAbreviados[index]}
                                       </td>
@@ -927,28 +946,16 @@ export default function VendasTecnologiaPage() {
                                             <>
                                               <button
                                                 onClick={() => handleEditarMetaVendedor(meta)}
-                                                className="p-1.5 rounded-md transition-colors"
+                                                className="p-1.5 rounded-md transition-colors hover:bg-purple-500/20"
                                                 style={{ color: theme.purple }}
-                                                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                                  e.currentTarget.style.backgroundColor = 'rgba(155, 89, 182, 0.1)' 
-                                                }}
-                                                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                                  e.currentTarget.style.backgroundColor = 'transparent' 
-                                                }}
                                                 title="Editar meta"
                                               >
                                                 ✏️
                                               </button>
                                               <button
                                                 onClick={() => handleExcluirClick(meta.id, `Meta ${nomeMes}`, 'metaVendedor')}
-                                                className="p-1.5 rounded-md transition-colors"
+                                                className="p-1.5 rounded-md transition-colors hover:bg-red-500/20"
                                                 style={{ color: theme.danger }}
-                                                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                                  e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)' 
-                                                }}
-                                                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                                  e.currentTarget.style.backgroundColor = 'transparent' 
-                                                }}
                                                 title="Excluir meta"
                                               >
                                                 🗑️
@@ -957,14 +964,8 @@ export default function VendasTecnologiaPage() {
                                           ) : (
                                             <button
                                               onClick={() => handleNovaMetaVendedor(vendedor.id, mes)}
-                                              className="p-1.5 rounded-md transition-colors"
+                                              className="p-1.5 rounded-md transition-colors hover:bg-green-500/20"
                                               style={{ color: theme.success }}
-                                              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                                e.currentTarget.style.backgroundColor = 'rgba(39, 174, 96, 0.1)' 
-                                              }}
-                                              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                                e.currentTarget.style.backgroundColor = 'transparent' 
-                                              }}
                                               title="Adicionar meta"
                                             >
                                               ➕
@@ -1002,14 +1003,8 @@ export default function VendasTecnologiaPage() {
                                             handleExcluirClick(meta.id, `Todas as metas de ${vendedor.nome}`, 'metaVendedor')
                                           })
                                       }}
-                                      className="p-1.5 rounded-md transition-colors"
+                                      className="p-1.5 rounded-md transition-colors hover:bg-red-500/20"
                                       style={{ color: theme.danger }}
-                                      onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                        e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)' 
-                                      }}
-                                      onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                                        e.currentTarget.style.backgroundColor = 'transparent' 
-                                      }}
                                       title="Excluir todas as metas"
                                     >
                                       🗑️
@@ -1147,7 +1142,7 @@ export default function VendasTecnologiaPage() {
                         })
                         const percentualMes = totalMetaMes > 0 ? (totalRealizadoMes / totalMetaMes) * 100 : 0
                         return (
-                          <tr key={mes} className="transition-colors hover:bg-opacity-10">
+                          <tr key={mes} className="transition-colors hover:bg-white/5">
                             <td className="px-4 py-3 whitespace-nowrap text-sm font-medium" style={{ color: theme.text }}>
                               {mesesAbreviados[index]}
                             </td>
@@ -1199,10 +1194,8 @@ export default function VendasTecnologiaPage() {
                                     <div className="flex flex-col items-center gap-1">
                                       <button
                                         onClick={() => handleNovaMetaCategoria(categoria.nome, mes)}
-                                        className="p-1.5 rounded-md transition-colors"
+                                        className="p-1.5 rounded-md transition-colors hover:bg-green-500/20"
                                         style={{ color: theme.success }}
-                                        onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'rgba(39, 174, 96, 0.1)'}
-                                        onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         title="Adicionar meta"
                                       >
                                         ➕
@@ -1240,10 +1233,8 @@ export default function VendasTecnologiaPage() {
                                     }
                                   })
                                 }}
-                                className="p-1.5 rounded-md transition-colors"
+                                className="p-1.5 rounded-md transition-colors hover:bg-red-500/20"
                                 style={{ color: theme.danger }}
-                                onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'rgba(231, 76, 60, 0.1)'}
-                                onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = 'transparent'}
                                 title="Excluir todas as metas do mês"
                               >
                                 🗑️
@@ -1259,9 +1250,9 @@ export default function VendasTecnologiaPage() {
                         {categorias.map(categoria => {
                           const totais = calcularTotalCategoria(categoria.nome)
                           const percentual = totais.percentual
-                          const totalComissao = metasCategorias
+                          const totalComissao = (metasCategorias || [])
                             .filter(m => m.categoria === categoria.nome)
-                            .reduce((acc, m) => acc + calcularComissao(m.valor_realizado, categoria.nome), 0)
+                            .reduce((acc, m) => acc + calcularComissao(m.valor_realizado || 0, categoria.nome), 0)
                          
                           return (
                             <td key={categoria.nome} className="px-4 py-3 text-sm text-center border-l" style={{ borderColor: theme.border }}>
@@ -1378,22 +1369,14 @@ export default function VendasTecnologiaPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalVendedor(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
-                    e.currentTarget.style.color = theme.text; 
-                  }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'transparent'; 
-                    e.currentTarget.style.color = theme.textSecondary; 
-                  }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSalvarVendedor}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:shadow-lg"
                   style={{ backgroundColor: theme.purple, color: 'white' }}
                   onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
                   onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
@@ -1406,7 +1389,7 @@ export default function VendasTecnologiaPage() {
         </div>
       )}
 
-      {/* MODAL: Meta do Vendedor */}
+      {/* MODAL: Meta do Vendedor - CORRIGIDO */}
       {showModalMetaVendedor && (
         <div className="fixed inset-0 z-[9999] overflow-y-auto">
           <div className="fixed inset-0 bg-black bg-opacity-75 transition-opacity" onClick={() => setShowModalMetaVendedor(false)} />
@@ -1472,35 +1455,33 @@ export default function VendasTecnologiaPage() {
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor da Meta (R$)</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={formMetaVendedor.valor_meta}
-                      onChange={(e) => setFormMetaVendedor({ ...formMetaVendedor, valor_meta: Number(e.target.value) })}
-                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                      onChange={(e) => handleNumberInput(e.target.value, 'valor_meta', setFormMetaVendedor)}
+                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
                       }}
-                      placeholder="0,00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Digite o valor"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor Realizado (R$)</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={formMetaVendedor.valor_realizado}
-                      onChange={(e) => setFormMetaVendedor({ ...formMetaVendedor, valor_realizado: Number(e.target.value) })}
-                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                      onChange={(e) => handleNumberInput(e.target.value, 'valor_realizado', setFormMetaVendedor)}
+                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
                       }}
-                      placeholder="0,00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Digite o valor"
                     />
                   </div>
                 </div>
@@ -1508,22 +1489,14 @@ export default function VendasTecnologiaPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalMetaVendedor(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
-                    e.currentTarget.style.color = theme.text; 
-                  }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'transparent'; 
-                    e.currentTarget.style.color = theme.textSecondary; 
-                  }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSalvarMetaVendedor}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:shadow-lg"
                   style={{ backgroundColor: theme.purple, color: 'white' }}
                   onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
                   onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
@@ -1536,7 +1509,7 @@ export default function VendasTecnologiaPage() {
         </div>
       )}
 
-      {/* MODAL: Meta da Categoria */}
+      {/* MODAL: Meta da Categoria - CORRIGIDO */}
       {showModalMetaCategoria && (
         <div className="fixed inset-0 z-[9999] overflow-y-auto">
           <div className="fixed inset-0 bg-black bg-opacity-75 transition-opacity" onClick={() => setShowModalMetaCategoria(false)} />
@@ -1601,35 +1574,33 @@ export default function VendasTecnologiaPage() {
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor da Meta (R$)</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={formMetaCategoria.valor_meta}
-                      onChange={(e) => setFormMetaCategoria({ ...formMetaCategoria, valor_meta: Number(e.target.value) })}
-                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                      onChange={(e) => handleNumberInput(e.target.value, 'valor_meta', setFormMetaCategoria)}
+                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
                       }}
-                      placeholder="0,00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Digite o valor"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: theme.textSecondary }}>Valor Realizado (R$)</label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       value={formMetaCategoria.valor_realizado}
-                      onChange={(e) => setFormMetaCategoria({ ...formMetaCategoria, valor_realizado: Number(e.target.value) })}
-                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none"
+                      onChange={(e) => handleNumberInput(e.target.value, 'valor_realizado', setFormMetaCategoria)}
+                      className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       style={{
                         backgroundColor: 'rgba(0, 0, 0, 0.2)',
                         borderColor: theme.border,
                         color: theme.text
                       }}
-                      placeholder="0,00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Digite o valor"
                     />
                   </div>
                   {formMetaCategoria.categoria && (
@@ -1637,7 +1608,8 @@ export default function VendasTecnologiaPage() {
                       <p className="text-sm flex items-center gap-2" style={{ color: theme.purple }}>
                         <span className="text-lg">💰</span>
                         {(() => {
-                          const comissao = calcularComissao(formMetaCategoria.valor_realizado, formMetaCategoria.categoria)
+                          const valor = Number(formMetaCategoria.valor_realizado) || 0
+                          const comissao = calcularComissao(valor, formMetaCategoria.categoria)
                           return `Comissão estimada: ${formatMoeda(comissao)}`
                         })()}
                       </p>
@@ -1648,22 +1620,14 @@ export default function VendasTecnologiaPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalMetaCategoria(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
-                    e.currentTarget.style.color = theme.text; 
-                  }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'transparent'; 
-                    e.currentTarget.style.color = theme.textSecondary; 
-                  }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSalvarMetaCategoria}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:shadow-lg"
                   style={{ backgroundColor: theme.purple, color: 'white' }}
                   onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#8e44ad'}
                   onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.purple}
@@ -1706,25 +1670,15 @@ export default function VendasTecnologiaPage() {
               <div className="px-6 py-4 flex justify-end gap-3" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
                 <button
                   onClick={() => setShowModalExcluir(false)}
-                  className="px-4 py-2 rounded-lg transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors hover:bg-white/10"
                   style={{ backgroundColor: 'transparent', border: `1px solid ${theme.border}`, color: theme.textSecondary }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; 
-                    e.currentTarget.style.color = theme.text; 
-                  }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => { 
-                    e.currentTarget.style.backgroundColor = 'transparent'; 
-                    e.currentTarget.style.color = theme.textSecondary; 
-                  }}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleConfirmarExclusao}
-                  className="px-4 py-2 rounded-lg transition-all"
+                  className="px-4 py-2 rounded-lg transition-all hover:bg-[#c0392b]"
                   style={{ backgroundColor: theme.danger, color: 'white' }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#c0392b'}
-                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = theme.danger}
                 >
                   Sim, excluir
                 </button>
