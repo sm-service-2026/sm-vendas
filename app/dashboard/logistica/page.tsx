@@ -47,7 +47,7 @@ export default function LogisticaPage() {
     warning: '#f39c12',
     danger: '#e74c3c',
     info: '#3498db',
-    yellow: '#e74c3c',
+    yellow: '#f39c12',
     yellowDark: '#e67e22',
     red: '#e74c3c',
     blue: '#3498db',
@@ -66,11 +66,11 @@ export default function LogisticaPage() {
   const [registroEditando, setRegistroEditando] = useState<RegistroLogistica | null>(null)
   const [itemParaExcluir, setItemParaExcluir] = useState<{ id: string, nome: string } | null>(null)
   
-  // Estados para formulário
+  // Estados para formulário - USANDO STRINGS VAZIAS
   const [formRegistro, setFormRegistro] = useState({
     placa: '',
     data: new Date().toISOString().split('T')[0],
-    km_rodados: '',  // ← mudado para string vazia
+    km_rodados: '',
     diesel_litros: '',
     diesel_valor: '',
     manutencao_descricao: '',
@@ -136,15 +136,15 @@ export default function LogisticaPage() {
 
   // ========== CRUD REGISTROS ==========
   function handleNovoRegistro() {
-  setRegistroEditando(null)
+    setRegistroEditando(null)
     setFormRegistro({
       placa: '',
       data: new Date().toISOString().split('T')[0],
-      km_rodados: '',           
+      km_rodados: '',
       diesel_litros: '',
-      diesel_valor: '',         
+      diesel_valor: '',
       manutencao_descricao: '',
-      manutencao_valor: '', 
+      manutencao_valor: '',
       motorista: '',
       observacao: ''
     })
@@ -227,6 +227,31 @@ export default function LogisticaPage() {
     } catch (error) {
       console.error('Erro ao salvar registro:', error)
       toast.error('Erro ao salvar registro')
+    }
+  }
+
+  // ========== EXCLUSÃO ==========
+  function handleExcluirClick(id: string, nome: string) {
+    setItemParaExcluir({ id, nome })
+    setShowModalExcluir(true)
+  }
+
+  async function handleConfirmarExclusao() {
+    if (!itemParaExcluir) return
+
+    try {
+      const { error } = await supabase
+        .from('caminhoes_logistica')
+        .delete()
+        .eq('id', itemParaExcluir.id)
+
+      if (error) throw error
+      toast.success('Registro excluído com sucesso!')
+      setShowModalExcluir(false)
+      carregarRegistros()
+    } catch (error) {
+      console.error('Erro ao excluir registro:', error)
+      toast.error('Erro ao excluir registro')
     }
   }
 
@@ -327,6 +352,13 @@ export default function LogisticaPage() {
       return new Date(data).toLocaleDateString('pt-BR')
     } catch {
       return data
+    }
+  }
+
+  // Função auxiliar para inputs numéricos
+  const handleNumberInput = (field: string, value: string) => {
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setFormRegistro({ ...formRegistro, [field]: value })
     }
   }
 
@@ -840,13 +872,13 @@ export default function LogisticaPage() {
                         type="text"
                         inputMode="decimal"
                         value={formRegistro.km_rodados}
-                        onChange={(e) => {
-                          const value = e.target.value
-                          if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                            setFormRegistro({ ...formRegistro, km_rodados: value })
-                          }
-                        }}
+                        onChange={(e) => handleNumberInput('km_rodados', e.target.value)}
                         className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        style={{ 
+                          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                          borderColor: theme.border,
+                          color: theme.text
+                        }}
                         placeholder="0"
                       />
                     </div>
@@ -884,13 +916,13 @@ export default function LogisticaPage() {
                           type="text"
                           inputMode="decimal"
                           value={formRegistro.diesel_litros}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                              setFormRegistro({ ...formRegistro, diesel_litros: value })
-                            }
+                          onChange={(e) => handleNumberInput('diesel_litros', e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          style={{ 
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                            borderColor: theme.border,
+                            color: theme.text
                           }}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           placeholder="Digite os litros"
                         />
                       </div>
@@ -902,13 +934,13 @@ export default function LogisticaPage() {
                           type="text"
                           inputMode="decimal"
                           value={formRegistro.diesel_valor}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                              setFormRegistro({ ...formRegistro, diesel_valor: value })
-                            }
+                          onChange={(e) => handleNumberInput('diesel_valor', e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          style={{ 
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                            borderColor: theme.border,
+                            color: theme.text
                           }}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           placeholder="Digite o valor"
                         />
                       </div>
@@ -946,13 +978,13 @@ export default function LogisticaPage() {
                           type="text"
                           inputMode="decimal"
                           value={formRegistro.manutencao_valor}
-                          onChange={(e) => {
-                            const value = e.target.value
-                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                              setFormRegistro({ ...formRegistro, manutencao_valor: value })
-                            }
+                          onChange={(e) => handleNumberInput('manutencao_valor', e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg border focus:ring-2 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          style={{ 
+                            backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                            borderColor: theme.border,
+                            color: theme.text
                           }}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           placeholder="Digite o valor"
                         />
                       </div>
@@ -1001,7 +1033,7 @@ export default function LogisticaPage() {
         </div>
       )}
 
-      {/* MODAL: Confirmar Exclusão - CORRIGIDO */}
+      {/* MODAL: Confirmar Exclusão */}
       {showModalExcluir && (
         <div className="fixed inset-0 z-[9999] overflow-y-auto">
           <div className="fixed inset-0 bg-black bg-opacity-75 transition-opacity" onClick={() => setShowModalExcluir(false)} />
